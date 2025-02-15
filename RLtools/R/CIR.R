@@ -36,4 +36,3 @@ CIR <- function(LT_mean, rate, delta_T, sigma, theta, T2M, nsims){
   return(rates)
 }
 
-CIR(LT_mean = 0.05, rate = 0.03, delta_T = 1/12, sigma = 0.02, theta = 0.1, T2M = 1, nsims = 5)
