@@ -27,7 +27,7 @@ vasicek <- function(LT_mean, rate, delta_T, sigma, theta, T2M, nsims){
     rates[t, ] <- rates[t-1, ] + theta * (LT_mean - rates[t-1, ]) * delta_T + sigma * diffusion[t, ]
   }
   
-  rates <- as_tibble(rates, .name_repair = "minimal")
+  rates <- dplyr::as_tibble(rates, .name_repair = "minimal")
   names(rates) <- paste("sim", 1:nsims, sep = "")
   rates <- rates %>% mutate(t = seq(0, T2M - delta_T, delta_T)) %>% select(t, everything())
   
