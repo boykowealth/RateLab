@@ -1,5 +1,5 @@
 # RateLab
-_Providing Rate Traders The Necceasary Tools For Managing Exposure and Risk In The United States Makrkets_
+_Providing Rate Traders The Necceasary Tools For Managing Exposure and Risk In The United States Markets_
 
 ## About RateLab
 
