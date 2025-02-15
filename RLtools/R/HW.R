@@ -32,9 +32,7 @@ HW <- function(LT_mean, rate, delta_T, sigma, theta, T2M, nsims){
   
   rates <- dplyr::as_tibble(rates, .name_repair = "minimal")
   names(rates) <- paste("sim", 1:nsims, sep = "")
-  rates <- rates %>% mutate(t = seq(0, T2M - delta_T, delta_T)) %>% select(t, everything())
+  rates <- rates %>% dplyr::mutate(t = seq(0, T2M - delta_T, delta_T)) %>% dplyr::select(t, dplyr::everything())
   
   return(rates)
 }
-
-HW(LT_mean = function(t) 0.05, rate = 0.03, delta_T = 1/12, sigma = 0.02, theta = 0.1, T2M = 1, nsims = 5)
