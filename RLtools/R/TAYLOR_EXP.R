@@ -1,3 +1,0 @@
-
-
-TAYLOR_EXP <- 
