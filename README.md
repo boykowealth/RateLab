@@ -70,7 +70,11 @@ Simulates the CIR model, commonly used in fixed income pricing, ensuring that in
 CIR(LT_mean = 0.05, rate = 0.03, delta_T = 1/12, sigma = 0.02, theta = 0.1, T2M = 1, nsims = 5)
 ```
 
-BDT(volatility = c(0.01, 0.015, 0.02), spot_rates = c(0.03, 0.035, 0.04))
+## Project Information
 
-These functions provide a comprehensive toolkit for bond pricing, yield curve construction, and interest rate modeling, enabling robust financial analysis in R.
+**This project is developed and maintained by:**
++ Brayden Boyko (bnboyko@ualberta.ca)
++ Mitch Greer (magreer@ualberta.ca)
+
+In collaberation with the Alberta School of Business honours finance (FinTech) program. The project is avaible under the GNU - General Public License.
 
