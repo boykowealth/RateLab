@@ -45,7 +45,7 @@ ui <- bslib::page_navbar(
     title = "Documentation",
     bslib::layout_columns(
       bslib::card(
-        bslib::card_header("Filters")
+        bslib::card_header("About RateLab")
       )
     )
   )
