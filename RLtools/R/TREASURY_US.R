@@ -4,7 +4,7 @@
 #' @return A tibble with rate data
 #' @export
 #' @examples
-#' TREASURY_US() %>% dplyr::filter(Date >= "2000-01-01)
+#' TREASURY_US()
 
 TREASURY_US <- function(){
   columns <- c("Date", "US1M", "US3M", "US6M", "US1Y", "US2Y", "US3Y", "US5Y", "US7Y", "US10Y", "US20Y", "US30Y")

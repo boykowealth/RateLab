@@ -12,3 +12,6 @@ A tibble with rate data
 \description{
 This fucntion pulls rate data directly from the US Federal Reserve (As early as Jan-1962)
 }
+\examples{
+TREASURY_US()
+}
