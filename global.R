@@ -13,8 +13,11 @@ library(plotly)
 library(DT)
 
 
+## Data Collection
+rates_df <- RLtools::TREASURY_US() %>% 
+            dplyr::filter(Date >= "1970-01-01") %>%
+            dplyr::mutate(dplyr::across(-Date, ~ifelse(is.na(.), 0, .)))
 
-## Data Collection Initialize
 
 
 
