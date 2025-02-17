@@ -18,5 +18,3 @@ TREASURY_US <- function(){
                   
     return(rates)
 }
-
-TREASURY_US()
