@@ -7,10 +7,19 @@ ui <- bslib::page_navbar(
   bslib::nav_panel(
     title = "Portfolio",
     bslib::layout_columns(
+      col_widths = c(2, 10),
       bslib::card(
-        bslib::card_header("Filters")
+        bslib::card_header("Manage Your Book"),
+        shiny::uiOutput("dynamicUI"),
+        shiny::actionButton("add", "Add Position")
+      ),
+      
+      bslib::card(
+        bslib::card_header("Your Portfolio")
       )
+      
     )
+    
   ),
   
   bslib::nav_panel(
