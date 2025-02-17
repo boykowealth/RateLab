@@ -1,4 +1,4 @@
-devtools::install_github('boykowealth/RateLab', subdir = "RLtools")
+#devtools::install_github('boykowealth/RateLab', subdir = "RLtools")
 
 library(dplyr)
 library(tidyverse)
@@ -17,6 +17,8 @@ library(DT)
 rates_df <- RLtools::TREASURY_US() %>% 
             dplyr::filter(Date >= "1970-01-01") %>%
             dplyr::mutate(dplyr::across(-Date, ~ifelse(is.na(.), 0, .)))
+
+rates_list <- colnames(rates_df %>% dplyr::select(-Date)) ## List of products avaiable in portfolio (For Dropdown Menu)
 
 
 
