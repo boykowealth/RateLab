@@ -18,8 +18,9 @@ rates_df <- RLtools::TREASURY_US() %>%
             dplyr::filter(Date >= "1970-01-01") %>%
             dplyr::mutate(dplyr::across(-Date, ~ifelse(is.na(.), 0, .)))
 
-rates_list <- colnames(rates_df %>% dplyr::select(-Date)) ## List of products avaiable in portfolio (For Dropdown Menu)
-
+rates_list <- rates_df %>%  ## List of products available in portfolio (For Dropdown Menu)
+              dplyr::select(Maturity) %>% unique() %>% 
+              stats::setNames(., .)
 
 
 

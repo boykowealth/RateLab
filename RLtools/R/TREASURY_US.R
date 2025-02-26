@@ -14,7 +14,19 @@ TREASURY_US <- function(){
     dplyr::rename_all(~ columns) %>% 
     dplyr::mutate(Date = as.Date(Date, format = "%Y-%m-%d")) %>%
     dplyr::mutate(dplyr::across(-Date, as.numeric)) %>% 
-    dplyr::mutate(dplyr::across(-Date, ~ . / 100))
+    dplyr::mutate(dplyr::across(-Date, ~ . / 100)) %>% 
+    tidyr::pivot_longer(cols = -Date, names_to = "Maturity", values_to = "Rate") %>% 
+    dplyr::arrange(Maturity, Date) %>%
+    dplyr::group_by(Maturity, lubridate::year(Date), lubridate::month(Date)) %>%
+    dplyr::mutate(
+      First_Date = first(Date), ## This gets the first date of each new month.
+      Coupon = if_else(Date == First_Date, Rate, NA_real_)
+    ) %>%
+    dplyr::ungroup() %>%
+    dplyr::group_by(Maturity) %>%
+    tidyr::fill(Coupon, .direction = "down") %>%  # Forward-fill Coupon within each Maturity
+    dplyr::ungroup() %>%
+    dplyr::select(Date, Maturity, Rate, Coupon)
                   
     return(rates)
 }
