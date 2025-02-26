@@ -12,7 +12,6 @@ library(shinyalert)
 library(plotly)
 library(DT)
 
-
 ## Data Collection
 rates_df <- RLtools::TREASURY_US() %>% 
             dplyr::filter(Date >= "1970-01-01") %>%
