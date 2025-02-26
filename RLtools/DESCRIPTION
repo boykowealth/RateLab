@@ -6,11 +6,11 @@ Authors@R:
 Description: Provides a comprehensive tool-set for the RateLabs application. Functions provide a wide range of interest rate and bond related measures, simulations, and data.
 License: GPL-3
 Imports:
+    magrittr (>= 2.0.1),
     dplyr (>= 1.1.4),
     tidyverse (>= 1.3.0),
-    magrittr (>= 2.0.1),
     readr (>= 2.1.5),
-    stringr (>= 4.4.2)
+    stringr (>= 1.5.1)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
