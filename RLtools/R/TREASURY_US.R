@@ -20,14 +20,20 @@ TREASURY_US <- function(){
     dplyr::arrange(Maturity, Date) %>%
     dplyr::group_by(Maturity, lubridate::year(Date), lubridate::month(Date)) %>%
     dplyr::mutate(
-      First_Date = first(Date), ## This gets the first date of each new month.
+      First_Date = dplyr::first(Date), ## This gets the first date of each new month.
       Coupon = ifelse(Maturity %in% c("US1M", "US3M", "US6M", "US1Y"), 0, ifelse(Date == First_Date, Rate, NA_real_))
     ) %>%
     dplyr::ungroup() %>%
     dplyr::group_by(Maturity) %>%
     tidyr::fill(Coupon, .direction = "down") %>%
     dplyr::ungroup() %>%
-    dplyr::select(Date, Maturity, Rate, Coupon)
+    dplyr::select(Date, Maturity, Rate, Coupon) %>% 
+    dplyr::mutate(
+      t2m = as.numeric(stringr::str_split_i(Maturity, 'S|M|Y', 2)),
+      t2m = ifelse(stringr::str_detect(Maturity, 'M'), t2m / 12, t2m)
+    )
                   
     return(rates)
 }
+
+data<-TREASURY_US()
