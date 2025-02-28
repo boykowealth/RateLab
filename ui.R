@@ -7,10 +7,45 @@ ui <- bslib::page_navbar(
   bslib::nav_panel(
     title = "Enviorment",
     bslib::layout_columns(
-      bslib::card(
-        bslib::card_header("Filters")
-      )
+        col_widths = c(2, 10),
+        bslib::card(
+          bslib::card_header("Inputs")
+        ),
+        bslib::card(
+          bslib::card_header("Market Enviorment"),
+          
+          ## Top Layer - Key Metrics
+          bslib::layout_columns(
+            col_widths = c(4, 4, 4),
+            bslib::card(
+              bslib::card_header("Spread Movements")
+            ),
+            bslib::card(
+              bslib::card_header("Greeks")
+            ),
+            bslib::card(
+              bslib::card_header("Macro-environment")
+            )
+          ),
+          
+          ## Middle Layer - Yield Curve and Spreads
+          bslib::layout_columns(
+            col_widths = c(6, 6),
+            bslib::card(
+              bslib::card_header("Yield Curve vs. Historical")
+            ),
+            bslib::card(
+              bslib::card_header("Benchmark Spreads")
+            )
+          ),
+          bslib::card(
+            bslib::card_header("Time Series Of Rates")
+          )
+        )
     )
+  ),
+  bslib::nav_panel(
+    title = "Co-Dynamics"
   ),
   bslib::nav_panel(
     title = "Portfolio",
