@@ -28,4 +28,10 @@ server <- function(input, output) {
     do.call(tagList, unlist(ui_list, recursive = FALSE))
   })
   
+  observeEvent(input$env_date_start, {
+    start_date <- input$env_date_start
+    print(start_date)
+  })
+  
+  
 }  

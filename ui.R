@@ -8,7 +8,17 @@ ui <- bslib::page_navbar(
     bslib::layout_columns(
       col_widths = c(2, 10),
       bslib::card(
-        bslib::card_header("Inputs")
+        bslib::card_header("Inputs"),
+        
+        ## Start Date
+        shiny::dateInput(inputId = "env_date_start", 
+                         label = "Start Date", 
+                         value = start_date),
+        ## End Date
+        shiny::dateInput(inputId = "env_date_end", 
+                         label = "End Date", 
+                         value = end_date)
+        
       ),
       bslib::card(
         
@@ -49,7 +59,16 @@ ui <- bslib::page_navbar(
     bslib::layout_columns(
       col_widths = c(2, 10),
       bslib::card(
-        bslib::card_header("Inputs")
+        bslib::card_header("Inputs"),
+        
+        ## Start Date
+        shiny::dateInput(inputId = "co_date_start", 
+                         label = "Start Date", 
+                         value = start_date),
+        ## End Date
+        shiny::dateInput(inputId = "co_date_end", 
+                         label = "End Date", 
+                         value = end_date)
       ),
     bslib::card(
       
