@@ -1,0 +1,42 @@
+---
+title: "Test"
+format: html
+editor: visual
+---
+
+## Data Test
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+## USA Did not issue a US20Y Bond from 1986-1993 due to lack of demand
+## Confirmation: https://fred.stlouisfed.org/series/DGS20
+
+RLtools::TREASURY_US() %>% 
+  dplyr::filter(round(t2m, 2) == c(0.08,0.25, 0.5, 1)) %>% 
+  ggplot(aes(x = Date, y = Rate, color = Maturity)) +
+  geom_line(linewidth = 0.5) +
+  labs(title = "Rate Trends by Maturity",
+       x = "Date",
+       y = "Rate",
+       color = "Maturity") + theme_minimal()
+
+RLtools::TREASURY_US() %>% 
+  dplyr::filter(t2m == c(2, 5, 7, 10)) %>% 
+  ggplot(aes(x = Date, y = Rate, color = Maturity)) +
+  geom_line(linewidth = 0.5) +
+  labs(title = "Rate Trends by Maturity",
+       x = "Date",
+       y = "Rate",
+       color = "Maturity") + theme_minimal()
+
+RLtools::TREASURY_US() %>% 
+  dplyr::filter(t2m == c(20, 30)) %>% 
+  ggplot(aes(x = Date, y = Rate, color = Maturity)) +
+  geom_line(linewidth = 0.5) +
+  labs(title = "Rate Trends by Maturity",
+       x = "Date",
+       y = "Rate",
+       color = "Maturity") + theme_minimal()
+```
