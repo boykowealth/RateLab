@@ -1,5 +1,4 @@
 ui <- bslib::page_navbar(
-  
   title = "RateLab",
   id = "main_navbar",
   theme = bslib::bs_theme(bootswatch = "yeti"),
@@ -7,56 +6,74 @@ ui <- bslib::page_navbar(
   bslib::nav_panel(
     title = "Enviorment",
     bslib::layout_columns(
-        col_widths = c(2, 10),
-        bslib::card(
-          bslib::card_header("Inputs")
-        ),
-        bslib::card(
-          bslib::card_header("Market Enviorment"),
-          
-          ## Top Layer - Key Metrics
-          bslib::layout_columns(
-            col_widths = c(4, 4, 4),
-            bslib::card(
-              bslib::card_header("Spread Movements")
-            ),
-            bslib::card(
-              bslib::card_header("Greeks")
-            ),
-            bslib::card(
-              bslib::card_header("Macro-environment")
-            )
-          ),
-          
-          ## Middle Layer - Yield Curve and Spreads
-          bslib::layout_columns(
-            col_widths = c(6, 6),
-            bslib::card(
-              bslib::card_header("Yield Curve vs. Historical")
-            ),
-            bslib::card(
-              bslib::card_header("Benchmark Spreads")
-            )
+      col_widths = c(2, 10),
+      bslib::card(
+        bslib::card_header("Inputs")
+      ),
+      bslib::card(
+        
+        ## Top Layer - Key Metrics
+        bslib::layout_columns(
+          col_widths = c(4, 4, 4),
+          bslib::card(
+            bslib::card_header("Spread Movements")
           ),
           bslib::card(
-            bslib::card_header("Time Series Of Rates")
+            bslib::card_header("Greeks")
+          ),
+          bslib::card(
+            bslib::card_header("Macro-environment")
           )
+        ),
+        
+        ## Middle Layer - Yield Curve and Spreads
+        bslib::layout_columns(
+          col_widths = c(6, 6),
+          bslib::card(
+            bslib::card_header("Yield Curve vs. Historical")
+          ),
+          bslib::card(
+            bslib::card_header("Benchmark Spreads")
+          )
+        ),
+        
+        ## Bottom Layer - Time Series
+        bslib::card(
+          bslib::card_header("Time Series Of Rates")
         )
+      )
     )
   ),
   bslib::nav_panel(
     title = "Co-Dynamics",
     bslib::layout_columns(
-      col_widths = c(2, 5, 5),
+      col_widths = c(2, 10),
       bslib::card(
-        bslib::card_header("Input")
+        bslib::card_header("Inputs")
       ),
-      bslib::card(
-        bslib::card_header("Delta Cross-Sensitivity")
+    bslib::card(
+      
+      ## Top Layer - Charts
+      bslib::layout_columns(
+        col_widths = c(6, 6),
+        bslib::card(
+        ),
+        bslib::card(
+        )
       ),
-      bslib::card(
-        bslib::card_header("Portfolio Risk")
+      
+      ## Middle Layer - Heatmap / Matrix
+      bslib::layout_columns(
+        col_widths = c(6, 6),
+        bslib::card(
+          bslib::card_header("Delta")
+        ),
+        bslib::card(
+          bslib::card_header("Gamma")
+        )
       )
+    )
+    )
   ),
   bslib::nav_panel(
     title = "Portfolio",
@@ -83,5 +100,4 @@ ui <- bslib::page_navbar(
       )
     )
   )
-  
 )
