@@ -1,37 +1,30 @@
-server <- function(input, output) {
+server <- function(input, output, session) {
   ##bs_themer()
   bslib::toggle_dark_mode() ## would make sense to offer both dark and light mode to the user
   
-  position_list <- shiny::reactiveVal(list(
-    list(
-      shiny::div(style = "padding: 10px; margin-bottom: 10px; border: 1px solid #4CAF50;",
-          shiny::selectInput("rate_1", "Select Rate", choices = rates_list, selected = NULL),
-          shiny::numericInput("amount_1", "Amount Allocated", value = 0, min = 0),
-          shiny::selectInput("position_1", "Position", choices = c("Long", "Short"), selected = "Long")
-      )
-    )
-  ))
   
-  observeEvent(input$add, {
-    n <- length(position_list()) + 1
-    new_ui <- list(
-      shiny::div(style = "padding: 10px; margin-bottom: 10px; border: 1px solid #4CAF50;",
-          shiny::selectInput(paste0("rate_", n), "Select Rate", choices = rates_list, selected = NULL),
-          shiny::numericInput(paste0("amount_", n), "Amount Allocated", value = 0, min = 0),
-          shiny::selectInput(paste0("position_", n), "Position", choices = c("Long", "Short"), selected = "Long")
-      ))
-    position_list(append(position_list(), list(new_ui)))
+  ## DATE FILTER <START>
+  dates <- shiny::reactiveValues(start = Sys.Date() - 1825, end = Sys.Date())
+  
+  shiny::observeEvent(input$env_date_start, {
+    dates$start <- input$env_date_start
+    shiny::updateDateInput(session, "co_date_start", value = dates$start)
   })
   
-  output$dynamicUI <- renderUI({
-    ui_list <- position_list()
-    do.call(tagList, unlist(ui_list, recursive = FALSE))
+  shiny::observeEvent(input$env_date_end, {
+    dates$end <- input$env_date_end
+    shiny::updateDateInput(session, "co_date_end", value = dates$end)
   })
   
-  observeEvent(input$env_date_start, {
-    start_date <- input$env_date_start
-    print(start_date)
+  shiny::observeEvent(input$co_date_start, {
+    dates$start <- input$co_date_start
+    shiny::updateDateInput(session, "env_date_start", value = dates$start)
   })
   
+  shiny::observeEvent(input$co_date_end, {
+    dates$end <- input$co_date_end
+    shiny::updateDateInput(session, "env_date_end", value = dates$end)
+  })
+  ## DATE FILTER <END>
   
 }  
