@@ -45,7 +45,18 @@ ui <- bslib::page_navbar(
     )
   ),
   bslib::nav_panel(
-    title = "Co-Dynamics"
+    title = "Co-Dynamics",
+    bslib::layout_columns(
+      col_widths = c(2, 5, 5),
+      bslib::card(
+        bslib::card_header("Input")
+      ),
+      bslib::card(
+        bslib::card_header("Delta Cross-Sensitivity")
+      ),
+      bslib::card(
+        bslib::card_header("Portfolio Risk")
+      )
   ),
   bslib::nav_panel(
     title = "Portfolio",

@@ -31,9 +31,8 @@ TREASURY_US <- function(){
     dplyr::mutate(
       t2m = as.numeric(stringr::str_split_i(Maturity, 'S|M|Y', 2)),
       t2m = ifelse(stringr::str_detect(Maturity, 'M'), t2m / 12, t2m)
-    )
+    ) %>% tidyr::drop_na()
                   
     return(rates)
 }
 
-data<-TREASURY_US()
