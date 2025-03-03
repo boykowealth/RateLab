@@ -111,25 +111,3 @@ NumericMatrix TreasuryPrices(NumericMatrix x, double step) {
 // run after the compilation.
 //
 
-/*** R
-library(ggplot2)
-library(plotly)
-dat <- TREASURY_US() %>% 
-  dplyr::mutate(n = dplyr::row_number())
-
-datesmat <- dat %>% select(n, Date, Maturity)
-
-params <- dat %>% select(n, c(-Date, -Maturity))
-
-matrix <- params %>% as.matrix()
-
-p <- TreasuryPrices(matrix, 0.0001) %>% 
-  as_tibble() 
-
-dplyr::left_join(datesmat, p, dplyr::join_by(n == Index))
-
-#plt <- dplyr::left_join(datesmat, p, dplyr::join_by(n == Index)) %>% 
-  #ggplot(aes(x = Date, y = Price, col = Maturity)) + geom_line()
-  
-#plotly::ggplotly(plt)  
-*/

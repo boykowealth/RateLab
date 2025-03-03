@@ -52,19 +52,3 @@ NumericMatrix TreasurySensitivities(NumericMatrix x, double step) {
 // (useful for testing and development). The R code will be automatically 
 // run after the compilation.
 //
-
-/*** R
-library(tidyverse)
-dat <- TREASURY_US() %>% 
-  dplyr::mutate(n = dplyr::row_number())
-
-datesmat <- dat %>% select(n, Date, Maturity)
-
-params <- dat %>% select(n, c(-Date, -Maturity))
-
-matrix <- params %>% as.matrix()
-
-p <- TreasuryPrices(matrix, 0.0001)
-
-TreasurySensitivities(p, 0.0001)
-*/

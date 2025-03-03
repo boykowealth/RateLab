@@ -52,11 +52,21 @@ server <- function(input, output, session) {
           x = "Maturity",
           y = "Rate",
           color = "Date"
+        ) +
+        ggplot2::theme(
+          panel.background = ggplot2::element_rect(fill = "#222", color = NA),
+          plot.background = ggplot2::element_rect(fill = "#222", color = NA),
+          panel.grid.major = ggplot2::element_line(color = "#444"),
+          panel.grid.minor = ggplot2::element_line(color = "#444"),
+          axis.text = ggplot2::element_text(color = "white"),
+          axis.title = ggplot2::element_text(color = "white"),
+          legend.background = ggplot2::element_rect(fill = "#222", color = NA),
+          legend.text = ggplot2::element_text(color = "white"),
+          legend.title = ggplot2::element_text(color = "white"),
+          legend.position = "bottom"
         )
     })
     
-    
-  
       # Time Series of Rates (Plotly)
     #output$ts_rates <- plotly::renderPlotly({
       #df <- app_df()
@@ -83,6 +93,18 @@ server <- function(input, output, session) {
           x = "Maturity",
           y = "Rate",
           color = "Date"
+        )+
+        ggplot2::theme(
+          panel.background = ggplot2::element_rect(fill = "#222", color = NA),
+          plot.background = ggplot2::element_rect(fill = "#222", color = NA),
+          panel.grid.major = ggplot2::element_line(color = "#444"),
+          panel.grid.minor = ggplot2::element_line(color = "#444"),
+          axis.text = ggplot2::element_text(color = "white"),
+          axis.title = ggplot2::element_text(color = "white"),
+          legend.background = ggplot2::element_rect(fill = "#222", color = NA),
+          legend.text = ggplot2::element_text(color = "white"),
+          legend.title = ggplot2::element_text(color = "white"),
+          legend.position = "right"
         )
     })
     
