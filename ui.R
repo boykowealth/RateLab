@@ -44,7 +44,9 @@ ui <- bslib::page_navbar(
             shiny::plotOutput("yield_curve")
           ),
           bslib::card(
-            bslib::card_header("Time Series of Rates")
+            bslib::card_header("Time Series of Rates"),
+            ##plotly::plotlyOutput("ts_rates")
+            shiny::plotOutput("ts_rates")
           )
         ),
         

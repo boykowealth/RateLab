@@ -43,8 +43,7 @@ server <- function(input, output, session) {
     output$yield_curve <- shiny::renderPlot({
       df <- app_df() %>% 
         dplyr::filter(Date == max(Date) | Date == min(Date)) %>% 
-        dplyr::arrange(t2m) %>% 
-        print(.)
+        dplyr::arrange(t2m)
       
       ggplot2::ggplot(df, ggplot2::aes(x = as.factor(t2m), y = Rate, color = as.factor(Date), group = Date)) +
         ggplot2::geom_line() +
@@ -55,7 +54,38 @@ server <- function(input, output, session) {
           color = "Date"
         )
     })
+    
+    
   
+      # Time Series of Rates (Plotly)
+    #output$ts_rates <- plotly::renderPlotly({
+      #df <- app_df()
+      
+      #gg <- ggplot2::ggplot(df, ggplot2::aes(x = as.factor(Date), y = Rate, color = as.factor(Maturity), group = Maturity)) +
+        #ggplot2::geom_line() +
+        #ggplot2::labs(
+          #title = "",
+          #x = "Maturity",
+          #y = "Rate",
+          #color = "Date"
+        #) 
+      
+      #plotly::ggplotly(gg)
+    #})
+    
+    output$ts_rates <- shiny::renderPlot({
+      df <- app_df()
+      
+      ggplot2::ggplot(df, ggplot2::aes(x = as.factor(Date), y = Rate, color = as.factor(Maturity), group = Maturity)) +
+        ggplot2::geom_line() +
+        ggplot2::labs(
+          title = "",
+          x = "Maturity",
+          y = "Rate",
+          color = "Date"
+        )
+    })
+    
   ## CHARTS & VISUALS <END>
   
   
