@@ -94,7 +94,7 @@ server <- function(input, output, session) {
     output$ts_rates <- shiny::renderPlot({
       df <- ts_df()
       
-      ggplot2::ggplot(df, ggplot2::aes(x = as.factor(Date), y = Rate, color = as.factor(Maturity), group = Maturity)) +
+      ggplot2::ggplot(df, ggplot2::aes(x = Date, y = Rate, color = as.factor(Maturity), group = Maturity)) +
         ggplot2::geom_line() +
         ggplot2::labs(
           title = "",

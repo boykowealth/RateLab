@@ -133,6 +133,9 @@ ui <- bslib::page_navbar(
     bslib::layout_columns(
       bslib::card(
         bslib::card_header("About RateLab")
+      ),
+      bslib::card(
+        bslib::card_header("Contacts")
       )
     )
   )
