@@ -2,9 +2,8 @@ server <- function(input, output, session) {
   ##bs_themer()
   bslib::toggle_dark_mode() ## would make sense to offer both dark and light mode to the user
   
-  
   ## DATE FILTER <START>
-  dates <- shiny::reactiveValues(start = Sys.Date() - 1825, end = Sys.Date())
+  dates <- shiny::reactiveValues(start = Sys.Date() - 30, end = Sys.Date())
   
   shiny::observeEvent(input$env_date_start, {
     dates$start <- input$env_date_start
@@ -26,5 +25,38 @@ server <- function(input, output, session) {
     shiny::updateDateInput(session, "env_date_end", value = dates$end)
   })
   ## DATE FILTER <END>
+  
+  ## DATAFRAME FILTER <START>
+  
+  app_df <- shiny::reactive({
+    df <- rates_df %>% 
+      dplyr::filter(Date >= dates$start & Date <= dates$end)
+    return(df)
+  })
+  
+  ## DATAFRAME FILTER <END>
+  
+  
+  ## CHARTS & VISUALS <START>
+  
+      # Yield Curve
+    output$yield_curve <- shiny::renderPlot({
+      df <- app_df() %>% 
+        dplyr::filter(Date == max(Date) | Date == min(Date)) %>% 
+        dplyr::arrange(t2m) %>% 
+        print(.)
+      
+      ggplot2::ggplot(df, ggplot2::aes(x = as.factor(t2m), y = Rate, color = as.factor(Date), group = Date)) +
+        ggplot2::geom_line() +
+        ggplot2::labs(
+          title = "",
+          x = "Maturity",
+          y = "Rate",
+          color = "Date"
+        )
+    })
+  
+  ## CHARTS & VISUALS <END>
+  
   
 }  

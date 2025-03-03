@@ -20,5 +20,5 @@ rates_list <- rates_df %>%  ## List of products available in portfolio (For Drop
               dplyr::select(Maturity) %>% unique() %>% 
               stats::setNames(., .)
 
-start_date <- Sys.Date() - 1825
+start_date <- Sys.Date() - 30
 end_date <- Sys.Date()

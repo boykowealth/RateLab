@@ -32,7 +32,7 @@ ui <- bslib::page_navbar(
             bslib::card_header("Greeks")
           ),
           bslib::card(
-            bslib::card_header("Macro-environment")
+            bslib::card_header("Volatility")
           )
         ),
         
@@ -40,17 +40,14 @@ ui <- bslib::page_navbar(
         bslib::layout_columns(
           col_widths = c(6, 6),
           bslib::card(
-            bslib::card_header("Yield Curve vs. Historical")
+            bslib::card_header("Yield Curve vs. Historical"),
+            shiny::plotOutput("yield_curve")
           ),
           bslib::card(
-            bslib::card_header("Benchmark Spreads")
+            bslib::card_header("Time Series of Rates")
           )
         ),
         
-        ## Bottom Layer - Time Series
-        bslib::card(
-          bslib::card_header("Time Series Of Rates")
-        )
       )
     )
   ),
