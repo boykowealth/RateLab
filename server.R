@@ -40,26 +40,33 @@ server <- function(input, output, session) {
   ## ASSET FILTER <END>
   
   ## DATAFRAME FILTER <START>
+    # Main DataFrame (Reacts To Date Inputs - All Other DFs Should Be Based On This One)
   app_df <- shiny::reactive({
     df <- rates_df %>% 
       dplyr::filter(Date >= dates$start & Date <= dates$end)
     return(df)
   })
   
+    # Time Series DataFrame (Used in Time Series Graphs)
   ts_df <- shiny::reactive({
     df <- app_df() %>% 
       dplyr::filter(Maturity == assets$series)
     return(df)
   })
-  ## DATAFRAME FILTER <END>
   
+    # DataFrame for Start and End Dates (Used In Yield Curve, Spread, Greeks, Volatility)
+  firstLast_df <- shiny::reactive({
+    df <- app_df() %>% 
+    dplyr::filter(Date == max(Date) | Date == min(Date)) %>% 
+    dplyr::arrange(t2m)
+    return(df)
+  })
+  ## DATAFRAME FILTER <END>
   
   ## CHARTS & VISUALS <START>
       # Yield Curve
     output$yield_curve <- shiny::renderPlot({
-      df <- app_df() %>% 
-        dplyr::filter(Date == max(Date) | Date == min(Date)) %>% 
-        dplyr::arrange(t2m)
+      df <- firstLast_df()
       
       ggplot2::ggplot(df, ggplot2::aes(x = as.factor(t2m), y = Rate, color = as.factor(Date), group = Date)) +
         ggplot2::geom_line() +
