@@ -4,7 +4,7 @@ ui <- bslib::page_navbar(
   theme = bslib::bs_theme(bootswatch = "yeti"),
   
   bslib::nav_panel(
-    title = "Enviorment",
+    title = "Environment",
     bslib::layout_columns(
       col_widths = c(2, 10),
       bslib::card(
@@ -40,7 +40,7 @@ ui <- bslib::page_navbar(
         bslib::layout_columns(
           col_widths = c(6, 6),
           bslib::card(
-            bslib::card_header("Yield Curve vs. Historical"),
+            bslib::card_header("Yield Curve Shift"),
             shiny::plotOutput("yield_curve")
           ),
           bslib::card(
