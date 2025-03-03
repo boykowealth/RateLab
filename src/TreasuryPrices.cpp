@@ -22,47 +22,73 @@ NumericMatrix TreasuryPrices(NumericMatrix x, double step) {
     double ytm = x(i, 1);
     double face = 100; //changed to 100 to standardize price
     double m = 2;
-    int t2m = x(i, 3);
+    double t2m = x(i, 3);
     double C = x(i, 2);
-    
-    if (t2m > 1) {
-      m = 2;
-    } else {
-      m = 1;
-    }
     
     double price = 0.00;
     double priceplus = 0.00;
     double priceminus = 0.00;
     
-    
-    for (double t = 1.0/m; t <= t2m; t+= 1.0/m){
+    if (t2m > 1) {
       
-      double t_periods = m * t;
+      m = 2;
       
-      double discount_factor = 1.0 / pow(1.0 + ytm / m, t_periods);
-      
-      double discount_facor_plus = 1.0 / pow(1.0 + (ytm + step) / m, t_periods);
-      
-      double discount_facor_minus = 1.0 / pow(1.0 + (ytm - step) / m, t_periods);
-      
-      double cf;
-      
-      if (t == t2m){
-        cf =  C * face / m + face;
-      } else{
-        cf = C * face / m;
+      for (double t = 1.0/m; t <= t2m; t+= 1.0/m){
+        
+        double t_periods = m * t;
+        
+        double discount_factor = 1.0 / pow(1.0 + ytm / m, t_periods);
+        
+        double discount_facor_plus = 1.0 / pow(1.0 + (ytm + step) / m, t_periods);
+        
+        double discount_facor_minus = 1.0 / pow(1.0 + (ytm - step) / m, t_periods);
+        
+        double cf;
+        
+        if (t == t2m){
+          
+          cf =  C * face / m + face;
+          
+        } else{
+          
+          cf = C * face / m;
+          
+        }
+        
+        double pv = cf * discount_factor;
+        double pvp = cf * discount_facor_plus;
+        double pvm = cf * discount_facor_minus;
+        
+        price += pv;
+        priceplus += pvp;
+        priceminus += pvm;
+        
       }
       
+    } else {
+      
+      m = 1;
+      
+        
+      double discount_factor = 1.0 / pow(1.0 + ytm, t2m);
+        
+      double discount_facor_plus = 1.0 / pow(1.0 + (ytm + step), t2m);
+        
+      double discount_facor_minus = 1.0 / pow(1.0 + (ytm - step), t2m);
+        
+      double cf=  C * face / m + face;
+        
+        
       double pv = cf * discount_factor;
       double pvp = cf * discount_facor_plus;
       double pvm = cf * discount_facor_minus;
-      
+        
       price += pv;
       priceplus += pvp;
       priceminus += pvm;
       
     }
+    
     
     results(i, 0) = index;
     results(i, 1) = ytm;
@@ -86,6 +112,8 @@ NumericMatrix TreasuryPrices(NumericMatrix x, double step) {
 //
 
 /*** R
+library(ggplot2)
+library(plotly)
 dat <- TREASURY_US() %>% 
   dplyr::mutate(n = dplyr::row_number())
 
@@ -95,5 +123,13 @@ params <- dat %>% select(n, c(-Date, -Maturity))
 
 matrix <- params %>% as.matrix()
 
-TreasuryPrices(matrix, 0.0001)
+p <- TreasuryPrices(matrix, 0.0001) %>% 
+  as_tibble() 
+
+dplyr::left_join(datesmat, p, dplyr::join_by(n == Index))
+
+#plt <- dplyr::left_join(datesmat, p, dplyr::join_by(n == Index)) %>% 
+  #ggplot(aes(x = Date, y = Price, col = Maturity)) + geom_line()
+  
+#plotly::ggplotly(plt)  
 */
