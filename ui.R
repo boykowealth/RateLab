@@ -17,7 +17,16 @@ ui <- bslib::page_navbar(
         ## End Date
         shiny::dateInput(inputId = "env_date_end", 
                          label = "End Date", 
-                         value = end_date)
+                         value = end_date),
+        ## Series Select
+        shiny::selectInput(
+          inputId = "env_asset_select",
+          label = "Rates:",
+          choices = c("US1M", "US3M", "US6M", "US1Y", "US2Y", "US5Y", "US7Y", "US10Y", "US20Y", "US30Y"),
+          selected = c("US2Y", "US10Y", "US30Y"),
+          multiple = TRUE,
+          selectize = TRUE
+        )
         
       ),
       bslib::card(
@@ -67,7 +76,16 @@ ui <- bslib::page_navbar(
         ## End Date
         shiny::dateInput(inputId = "co_date_end", 
                          label = "End Date", 
-                         value = end_date)
+                         value = end_date),
+        ## Series Select
+        shiny::selectInput(
+          inputId = "co_asset_select",
+          label = "Rates:",
+          choices = c("US1M", "US3M", "US6M", "US1Y", "US2Y", "US5Y", "US7Y", "US10Y", "US20Y", "US30Y"),
+          selected = c("US2Y", "US10Y", "US30Y"),
+          multiple = TRUE,
+          selectize = TRUE
+        )
       ),
     bslib::card(
       

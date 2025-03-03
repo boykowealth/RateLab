@@ -4,6 +4,7 @@ server <- function(input, output, session) {
   
   ## DATE FILTER <START>
   dates <- shiny::reactiveValues(start = Sys.Date() - 30, end = Sys.Date())
+  assets <- shiny::reactiveValues(series = c("US2Y", "US10Y", "US30Y"))
   
   shiny::observeEvent(input$env_date_start, {
     dates$start <- input$env_date_start
@@ -26,19 +27,34 @@ server <- function(input, output, session) {
   })
   ## DATE FILTER <END>
   
-  ## DATAFRAME FILTER <START>
+  ## ASSET FILTER <START>
+  shiny::observeEvent(input$env_asset_select, {
+    assets$series <- input$env_asset_select
+    shiny::updateSelectInput(session, "co_asset_select", selected = assets$series)
+  })
   
+  shiny::observeEvent(input$co_asset_select, {
+    assets$series <- input$co_asset_select
+    shiny::updateSelectInput(session, "env_asset_select", selected = assets$series)
+  })
+  ## ASSET FILTER <END>
+  
+  ## DATAFRAME FILTER <START>
   app_df <- shiny::reactive({
     df <- rates_df %>% 
       dplyr::filter(Date >= dates$start & Date <= dates$end)
     return(df)
   })
   
+  ts_df <- shiny::reactive({
+    df <- app_df() %>% 
+      dplyr::filter(Maturity == assets$series)
+    return(df)
+  })
   ## DATAFRAME FILTER <END>
   
   
   ## CHARTS & VISUALS <START>
-  
       # Yield Curve
     output$yield_curve <- shiny::renderPlot({
       df <- app_df() %>% 
@@ -67,24 +83,9 @@ server <- function(input, output, session) {
         )
     })
     
-      # Time Series of Rates (Plotly)
-    #output$ts_rates <- plotly::renderPlotly({
-      #df <- app_df()
-      
-      #gg <- ggplot2::ggplot(df, ggplot2::aes(x = as.factor(Date), y = Rate, color = as.factor(Maturity), group = Maturity)) +
-        #ggplot2::geom_line() +
-        #ggplot2::labs(
-          #title = "",
-          #x = "Maturity",
-          #y = "Rate",
-          #color = "Date"
-        #) 
-      
-      #plotly::ggplotly(gg)
-    #})
-    
+      # Time-Series of Rates
     output$ts_rates <- shiny::renderPlot({
-      df <- app_df()
+      df <- ts_df()
       
       ggplot2::ggplot(df, ggplot2::aes(x = as.factor(Date), y = Rate, color = as.factor(Maturity), group = Maturity)) +
         ggplot2::geom_line() +
