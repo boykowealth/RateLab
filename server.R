@@ -155,7 +155,7 @@ server <- function(input, output, session) {
       df <- startEnd_df()
       
       ggplot2::ggplot(df, ggplot2::aes(x = as.factor(t2m), y = Rate, color = as.factor(Date), group = Date)) +
-        ggplot2::geom_line() +
+        ggplot2::geom_smooth(se = FALSE) +
         ggplot2::labs(
           title = "",
           x = "Maturity (Years)",
