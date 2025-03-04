@@ -11,9 +11,14 @@ library(bslib)
 library(shinyalert)
 library(plotly)
 library(DT)
+library(Rcpp)
+
 
 Rcpp::sourceCpp('src/TreasuryPrices.cpp')
 Rcpp::sourceCpp('src/TreasurySensitivities.cpp')
+Rcpp::sourceCpp('src/bondprice.cpp', env = globalenv())
+Rcpp::sourceCpp('src/Sensitivities.cpp', env = globalenv())
+
 
 ## Data Collection
 start_date <- Sys.Date() - 30
@@ -23,8 +28,8 @@ rates_df <- RLtools::TREASURY_US() %>%
             dplyr::filter(Date >= "1970-01-01") %>% 
             dplyr::mutate(n = dplyr::row_number())
 
-datesmat <- dat %>% select(n, Date, Maturity)
-params <- dat %>% select(n, c(-Date, -Maturity))
+datesmat <- rates_df %>% select(n, Date, Maturity)
+params <- rates_df %>% select(n, c(-Date, -Maturity))
 matrix <- params %>% as.matrix()
 p <- TreasuryPrices(matrix, 0.0001)
 
