@@ -2,9 +2,13 @@ server <- function(input, output, session) {
   ##bs_themer()
   bslib::toggle_dark_mode() ## would make sense to offer both dark and light mode to the user
   
-  ## DATE FILTER <START>
+  ## Dynamic Lists <START>
   dates <- shiny::reactiveValues(start = Sys.Date() - 30, end = Sys.Date())
   assets <- shiny::reactiveValues(series = c("US2Y", "US10Y", "US30Y"))
+  measures <- shiny::reactiveValues(type = "Rate")
+  ## Dynamic Lists <END>
+  
+  ## DATE FILTER <START>
   
   shiny::observeEvent(input$env_date_start, {
     dates$start <- input$env_date_start
@@ -38,6 +42,12 @@ server <- function(input, output, session) {
     shiny::updateDateInput(session, "env_asset_select", value = assets$series)
   })
   ## ASSET FILTER <END>  
+
+  ## TS MEASURE FILTER <START>
+  shiny::observeEvent(input$ts_select, {
+    measures$type <- input$ts_select
+  })
+  ## TS MEASURE FILTER <END>  
   
   ## DATAFRAME FILTER <START>
   
@@ -49,7 +59,15 @@ server <- function(input, output, session) {
   
   ts_df <- shiny::reactive({
     df <- app_df() %>% 
-      dplyr::filter(Maturity == assets$series)
+      dplyr::filter(Maturity == assets$series) %>% 
+      dplyr::mutate(ts_value = dplyr::case_when(
+        measures$type == "Rate" ~ Rate,
+        measures$type == "Price" ~ Price,
+        measures$type == "Delta" ~ Delta,
+        measures$type == "Gamma" ~ Gamma,
+        TRUE ~ Rate  # Default case
+      ))
+    
     return(df)
   })
   
@@ -197,7 +215,7 @@ server <- function(input, output, session) {
         format <- "%Y"       
       }
       
-      ggplot2::ggplot(df, ggplot2::aes(x = Date, y = Rate, color = as.factor(Maturity), group = Maturity)) +
+      ggplot2::ggplot(df, ggplot2::aes(x = Date, y = ts_value, color = as.factor(Maturity), group = Maturity)) +
         ggplot2::geom_line() +
         ggplot2::labs(
           title = "",
