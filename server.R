@@ -4,6 +4,7 @@ server <- function(input, output, session) {
   
   ## DATE FILTER <START>
   dates <- shiny::reactiveValues(start = Sys.Date() - 30, end = Sys.Date())
+  assets <- shiny::reactiveValues(series = c("US2Y", "US10Y", "US30Y"))
   
   shiny::observeEvent(input$env_date_start, {
     dates$start <- input$env_date_start
@@ -26,12 +27,37 @@ server <- function(input, output, session) {
   })
   ## DATE FILTER <END>
   
+  ## ASSET FILTER <START>
+  shiny::observeEvent(input$env_asset_select, {
+    assets$series <- input$env_asset_select
+    shiny::updateDateInput(session, "co_asset_select", value = assets$series)
+  })
+  
+  shiny::observeEvent(input$co_asset_select, {
+    assets$series <- input$co_asset_select
+    shiny::updateDateInput(session, "env_asset_select", value = assets$series)
+  })
+  ## ASSET FILTER <END>  
+  
   ## DATAFRAME FILTER <START>
   
   app_df <- shiny::reactive({
     df <- rates_df %>% 
       dplyr::filter(Date >= dates$start & Date <= dates$end)
     return(df)
+  })
+  
+  ts_df <- shiny::reactive({
+    df <- app_df() %>% 
+      dplyr::filter(Maturity == assets$series)
+    return(df)
+  })
+  
+  startEnd_df <- shiny::reactive({
+    df <- app_df() %>% 
+      dplyr::filter(Date == max(Date) | Date == min(Date)) %>% 
+      dplyr::mutate(t2m = round(t2m, 3)) %>% 
+      dplyr::arrange(t2m)
   })
   
   ## DATAFRAME FILTER <END>
@@ -126,10 +152,7 @@ server <- function(input, output, session) {
   
       # Yield Curve
     output$yield_curve <- shiny::renderPlot({
-      df <- app_df() %>% 
-        dplyr::filter(Date == max(Date) | Date == min(Date)) %>% 
-        dplyr::mutate(t2m = round(t2m, 3)) %>% 
-        dplyr::arrange(t2m)
+      df <- startEnd_df()
       
       ggplot2::ggplot(df, ggplot2::aes(x = as.factor(t2m), y = Rate, color = as.factor(Date), group = Date)) +
         ggplot2::geom_line() +
@@ -154,24 +177,9 @@ server <- function(input, output, session) {
         )
     })
     
-      # Time Series of Rates (Plotly)
-    #output$ts_rates <- plotly::renderPlotly({
-      #df <- app_df()
-      
-      #gg <- ggplot2::ggplot(df, ggplot2::aes(x = as.factor(Date), y = Rate, color = as.factor(Maturity), group = Maturity)) +
-        #ggplot2::geom_line() +
-        #ggplot2::labs(
-          #title = "",
-          #x = "Maturity",
-          #y = "Rate",
-          #color = "Date"
-        #) 
-      
-      #plotly::ggplotly(gg)
-    #})
     
     output$ts_rates <- shiny::renderPlot({
-      df <- app_df()
+      df <- ts_df()
       
       time_diff <- as.numeric(difftime(dates$end, dates$start, units = "days"))
       
