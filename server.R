@@ -177,7 +177,7 @@ server <- function(input, output, session) {
         )
     })
     
-    
+      # Time Series Chart
     output$ts_rates <- shiny::renderPlot({
       df <- ts_df()
       
@@ -222,7 +222,6 @@ server <- function(input, output, session) {
           legend.position = "right"
         )
     })
-    
   ## CHARTS & VISUALS <END>
   
   
