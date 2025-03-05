@@ -48,7 +48,8 @@ ui <- bslib::page_navbar(
             shiny::uiOutput("spreads")
           ),
           bslib::card(
-            bslib::card_header("Greeks")
+            bslib::card_header("Greeks"),
+            shiny::uiOutput("greeks")
           ),
           bslib::card(
             bslib::card_header("Volatility")

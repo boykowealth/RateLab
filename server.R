@@ -287,7 +287,6 @@ server <- function(input, output, session) {
   ## CHARTS & VISUALS <END>
   
   ## UI KEY METRICS <START>
-    
     output$spreads <- renderUI({
       df <- spread_df()
       
@@ -311,6 +310,54 @@ server <- function(input, output, session) {
       
       shiny::tagList(combination_ui)
     })
+    
+    output$greeks <- renderUI({
+      dfD <- startEnd_df() %>%
+        dplyr::select(Date, Delta, Maturity) %>%
+        dplyr::filter(Maturity == assets$series) %>%
+        dplyr::mutate_all(~ ifelse(is.na(.), 0, .)) %>%
+        tidyr::pivot_wider(names_from = Maturity, values_from = Delta)
+      
+      dfG <- startEnd_df() %>%
+        dplyr::select(Date, Gamma, Maturity) %>%
+        dplyr::filter(Maturity == assets$series) %>%
+        dplyr::mutate_all(~ ifelse(is.na(.), 0, .)) %>%
+        tidyr::pivot_wider(names_from = Maturity, values_from = Gamma)
+      
+      combination_ui <- lapply(names(dfD)[-1], function(col_name) {
+        d_first <- dfD[[col_name]][1] * 10000
+        d_sec <- dfD[[col_name]][2] * 10000
+        
+        g_first <- dfG[[col_name]][1] * 10000
+        g_sec <- dfG[[col_name]][2] * 10000
+        
+        # Safely calculate differences with NA checks
+        d_dif <- ifelse(is.na(d_sec) | is.na(d_first), 0, d_sec - d_first)
+        g_dif <- ifelse(is.na(g_sec) | is.na(g_first), 0, g_sec - g_first)
+        
+        arrow_icon_d <- if (d_dif > 0) {
+          shiny::icon("arrow-up", lib = "glyphicon")
+        } else {
+          shiny::icon("arrow-down", lib = "glyphicon")
+        }
+        
+        arrow_icon_g <- if (g_dif > 0) {
+          shiny::icon("arrow-up", lib = "glyphicon")
+        } else {
+          shiny::icon("arrow-down", lib = "glyphicon")
+        }
+        
+        shiny::p(
+          shiny::strong(col_name), 
+          paste(": Delta:", round(d_sec, 0), "BPS"), arrow_icon_d, 
+          paste(" Gamma:", round(g_sec, 2), "BPS"), arrow_icon_g
+        )
+      })
+      
+      shiny::div(combination_ui)
+    })
+    
+    
   ## UI KEY METRICS <END>
     
     
