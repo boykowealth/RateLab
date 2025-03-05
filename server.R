@@ -80,36 +80,47 @@ server <- function(input, output, session) {
   
   spread_df <- shiny::reactive({
     
-    ### GENERATE ALL COMBINATIONS OF ASSETS SELECTED
-    combinations <- combn(assets$series, 2, simplify = FALSE)
-    combination_names <- purrr::map_chr(combinations, ~ paste(.x[1], .x[2], sep = "_"))
+    ### GENERATE ALL COMBINATIONS (ORDER MATTERS)
+    combinations <- expand.grid(assets$series, assets$series) %>%
+      dplyr::filter(Var1 != Var2) %>%
+      dplyr::mutate(name = paste(Var1, Var2, sep = "_")) 
+    
+    reverse_combinations <- combinations %>%
+      dplyr::rename(Var1 = Var2, Var2 = Var1) %>%
+      dplyr::mutate(name = paste(Var1, Var2, sep = "_"))
+    
+    all_combinations <- dplyr::bind_rows(combinations, reverse_combinations) %>%
+      dplyr::distinct()
+    
+    combination_names <- all_combinations$name
     
     ### CONVERT RATES TO WIDE DF
     df <- startEnd_df() %>%
       dplyr::select(Date, Rate, Maturity) %>%
-      dplyr::group_by(Maturity) %>%
       tidyr::pivot_wider(names_from = Maturity, values_from = Rate)
     
     ### MAP ALL SPREADS  
-    maturity_columns <- names(df)[-1]
-      if (length(maturity_columns) >= 2) {
-        df <- df %>%
-          dplyr::bind_cols(
-            purrr::map_dfc(
-              utils::combn(maturity_columns, 2, simplify = FALSE),
-              ~ tibble::tibble("spread_{.x[1]}_{.x[2]}" := df[[.x[1]]] - df[[.x[2]]])
-            )
+    df <- df %>%
+      dplyr::bind_cols(
+        purrr::map_dfc(seq_len(nrow(all_combinations)), function(i) {
+          var1 <- all_combinations$Var1[i]
+          var2 <- all_combinations$Var2[i]
+          tibble::tibble(
+            !!paste0(var1, "_", var2) := df[[var1]] - df[[var2]]
           )
-      }
-      
-      ### ONLY DISPLAY THE COMBINATIONS SELECTED
-      df <- df %>% 
-        dplyr::select(Date, dplyr::starts_with("spread")) %>% 
-        dplyr::rename_with(~ stringr::str_remove(., "spread_")) %>% 
-        dplyr::select(Date, dplyr::all_of(combination_names))
+        })
+      )
+    
+    ### ONLY DISPLAY THE COMBINATIONS SELECTED
+    available_columns <- names(df)[-1]  # All spread columns after Date
+    valid_combinations <- lubridate::intersect(combination_names, available_columns)
+    
+    df <- df %>%
+      dplyr::select(Date, dplyr::all_of(valid_combinations))  # Select only matching columns
     
     return(df)
   })
+  
   
   ## DATAFRAME FILTER <END>
   
@@ -294,8 +305,7 @@ server <- function(input, output, session) {
         }
         
         shiny::div(
-          shiny::strong(col_name),
-          shiny::p(paste("Spread:", round(second_value, 0), "BPS"), arrow_icon, round(rate_diff, 0))
+          shiny::p(shiny::strong(col_name), paste(":", round(second_value, 0), "BPS"), arrow_icon, round(rate_diff, 0))
         )
       })
       
