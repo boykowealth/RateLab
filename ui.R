@@ -44,7 +44,8 @@ ui <- bslib::page_navbar(
         bslib::layout_columns(
           col_widths = c(4, 4, 4),
           bslib::card(
-            bslib::card_header("Spread Movements")
+            bslib::card_header("Spread Movements"),
+            shiny::uiOutput("spreads")
           ),
           bslib::card(
             bslib::card_header("Greeks")

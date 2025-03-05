@@ -8,10 +8,12 @@ library(rlang)
 
 library(shiny)
 library(bslib)
-library(shinyalert)
-library(plotly)
+library(ggplot2)
 library(DT)
 library(Rcpp)
+library(utils)
+library(stringr)
+
 
 
 Rcpp::sourceCpp('src/TreasuryPrices.cpp')

@@ -78,6 +78,39 @@ server <- function(input, output, session) {
       dplyr::arrange(t2m)
   })
   
+  spread_df <- shiny::reactive({
+    
+    ### GENERATE ALL COMBINATIONS OF ASSETS SELECTED
+    combinations <- combn(assets$series, 2, simplify = FALSE)
+    combination_names <- purrr::map_chr(combinations, ~ paste(.x[1], .x[2], sep = "_"))
+    
+    ### CONVERT RATES TO WIDE DF
+    df <- startEnd_df() %>%
+      dplyr::select(Date, Rate, Maturity) %>%
+      dplyr::group_by(Maturity) %>%
+      tidyr::pivot_wider(names_from = Maturity, values_from = Rate)
+    
+    ### MAP ALL SPREADS  
+    maturity_columns <- names(df)[-1]
+      if (length(maturity_columns) >= 2) {
+        df <- df %>%
+          dplyr::bind_cols(
+            purrr::map_dfc(
+              utils::combn(maturity_columns, 2, simplify = FALSE),
+              ~ tibble::tibble("spread_{.x[1]}_{.x[2]}" := df[[.x[1]]] - df[[.x[2]]])
+            )
+          )
+      }
+      
+      ### ONLY DISPLAY THE COMBINATIONS SELECTED
+      df <- df %>% 
+        dplyr::select(Date, dplyr::starts_with("spread")) %>% 
+        dplyr::rename_with(~ stringr::str_remove(., "spread_")) %>% 
+        dplyr::select(Date, dplyr::all_of(combination_names))
+    
+    return(df)
+  })
+  
   ## DATAFRAME FILTER <END>
   
   ## DT INPUT <START>
@@ -242,5 +275,33 @@ server <- function(input, output, session) {
     })
   ## CHARTS & VISUALS <END>
   
-  
+  ## UI KEY METRICS <START>
+    
+    output$spreads <- renderUI({
+      df <- spread_df()
+      
+      combination_columns <- names(df)[-1]
+      combination_ui <- lapply(combination_columns, function(col_name) {
+        
+        first_value <- df[[col_name]][1] * 10000
+        second_value <- df[[col_name]][2] * 10000
+        rate_diff <- second_value - first_value
+        
+        arrow_icon <- if (rate_diff > 0) {
+          shiny::icon("arrow-up", lib = "glyphicon")
+        } else {
+          shiny::icon("arrow-down", lib = "glyphicon")
+        }
+        
+        shiny::div(
+          shiny::strong(col_name),
+          shiny::p(paste("Spread:", round(second_value, 0), "BPS"), arrow_icon, round(rate_diff, 0))
+        )
+      })
+      
+      shiny::tagList(combination_ui)
+    })
+  ## UI KEY METRICS <END>
+    
+    
 }  
