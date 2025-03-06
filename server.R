@@ -134,6 +134,20 @@ server <- function(input, output, session) {
     return(df)
   })
   
+  coDyn_df <- shiny::reactive({
+    df <- rates_df %>% 
+      dplyr::filter(Maturity %in% assets$series) %>% 
+      dplyr::group_by(Maturity) %>% 
+      dplyr::mutate(
+        RateChg = (Rate / dplyr::lag(Rate)) -1,
+        InfChg = (Inflation / dplyr::lag(Inflation)) -1,
+        Sensitivity = RateChg / InfChg
+      ) %>% 
+      dplyr::ungroup() %>% 
+      dplyr::filter(InfChg != 0) %>% 
+      dplyr::arrange(Inflation)
+  })
+    
   
   ## DATAFRAME FILTER <END>
   
@@ -400,6 +414,44 @@ server <- function(input, output, session) {
           legend.position = "right"
         )
     })
+    
+    # Sensitivity To Inflation
+    output$coDynamic <- shiny::renderPlot({
+      df <- coDyn_df()
+      df$Inflation <- round(as.numeric(df$Inflation),2)
+      
+      ggplot2::ggplot(df, ggplot2::aes(x = Inflation, y = Sensitivity, color = as.factor(Maturity), group = Maturity)) +
+        ggplot2::geom_smooth(se = FALSE) +
+        ggplot2::labs(
+          title = "",
+          x = "Inflation",
+          y = "Sensitivity To Inflation",
+          color = "Maturity"
+        ) +
+        ggplot2::scale_y_continuous(
+          labels = scales::percent,
+          breaks = seq(-1, 1, by = 0.1)  # Adjust based on expected range of Sensitivity
+        ) +
+        ggplot2::scale_x_continuous(
+          labels = scales::percent,
+          breaks = seq(min(df$Inflation, na.rm = TRUE), max(df$Inflation, na.rm = TRUE), by = 0.02)
+        ) +
+        ggplot2::geom_hline(yintercept = 0, color = "white", size = 0.5) +
+        ggplot2::theme(
+          panel.background = ggplot2::element_rect(fill = "#222", color = NA),
+          plot.background = ggplot2::element_rect(fill = "#222", color = NA),
+          panel.grid.major = ggplot2::element_line(color = "#444"),
+          panel.grid.minor = ggplot2::element_line(color = "#444"),
+          axis.text = ggplot2::element_text(color = "white"),
+          axis.title = ggplot2::element_text(color = "white"),
+          legend.background = ggplot2::element_rect(fill = "#222", color = NA),
+          legend.text = ggplot2::element_text(color = "white"),
+          legend.title = ggplot2::element_text(color = "white"),
+          legend.position = "bottom"
+        )
+    })
+    
+    
   ## CHARTS & VISUALS <END>
   
   ## UI KEY METRICS <START>

@@ -122,20 +122,12 @@ ui <- bslib::page_navbar(
       bslib::layout_columns(
         col_widths = c(6, 6),
         bslib::card(
+          bslib::card_header("Yield Curve Dynamics"),
           plotly::plotlyOutput('yield_dynamic')
         ),
         bslib::card(
-        )
-      ),
-      
-      ## Middle Layer - Heatmap / Matrix
-      bslib::layout_columns(
-        col_widths = c(6, 6),
-        bslib::card(
-          bslib::card_header("Delta")
-        ),
-        bslib::card(
-          bslib::card_header("Gamma")
+          bslib::card_header("Rate Sensitivity To Inflation"),
+          shiny::plotOutput("coDynamic")
         )
       )
     )

@@ -13,6 +13,7 @@ library(tidyquant)
 library(shiny)
 library(bslib)
 library(ggplot2)
+library(plotly)
 library(DT)
 library(Rcpp)
 
