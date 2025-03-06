@@ -8,6 +8,7 @@ library(utils)
 library(stringr)
 library(lubridate)
 library(zoo)
+library(tidyquant)
 
 library(shiny)
 library(bslib)
@@ -70,6 +71,19 @@ params <- rates_df %>% select(n, c(-Date, -Maturity))
 matrix <- params %>% as.matrix()
 p <- TreasuryPrices(matrix, 0.0001)
 
+inflation_df <- tidyquant::tq_get(
+  x = 'CPIAUCSL',
+  get = 'economic.data',
+  from = '1959-01-01'
+) %>% 
+  dplyr::mutate(yoy = (price / lag(price, 12)) - 1) %>% 
+  tidyr::drop_na() %>% 
+  tidyr::pivot_wider(id_cols = date, names_from = symbol, values_from = yoy) %>% 
+  dplyr::rename('Inflation' = CPIAUCSL)
+
 rates_df <- TreasurySensitivities(p, 0.0001) %>% 
   as_tibble() %>% 
-  dplyr::left_join(datesmat, ., by = dplyr::join_by(n == Index))
+  dplyr::left_join(datesmat, ., by = dplyr::join_by(n == Index)) %>% 
+  dplyr::left_join(., inflation_df, by = dplyr::join_by(Date == date)) %>% 
+  tidyr::fill(Inflation, .direction = 'down')
+
