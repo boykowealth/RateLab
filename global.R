@@ -21,8 +21,8 @@ Rcpp::sourceCpp('src/TreasuryPrices.cpp')
 Rcpp::sourceCpp('src/TreasurySensitivities.cpp')
 Rcpp::sourceCpp('src/bondprice.cpp', env = globalenv())
 Rcpp::sourceCpp('src/Sensitivities.cpp', env = globalenv())
+Rcpp::sourceCpp('src/CrossGamma.cpp', env = globalenv())
 
-#sync Push
 
 ## Add to package 
 
@@ -73,3 +73,6 @@ p <- TreasuryPrices(matrix, 0.0001)
 rates_df <- TreasurySensitivities(p, 0.0001) %>% 
   as_tibble() %>% 
   dplyr::left_join(datesmat, ., by = dplyr::join_by(n == Index))
+
+
+

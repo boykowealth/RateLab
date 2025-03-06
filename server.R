@@ -294,7 +294,6 @@ server <- function(input, output, session) {
           
           zero <- dat %>% dplyr::filter(series == 'Portfolio') %>%  filter(round(value, 0) == 0) %>% dplyr::pull(YTM)
           
-          print(zero)
           
           dat <- dat %>% dplyr::mutate(change = YTM - zero)
           
@@ -535,5 +534,51 @@ server <- function(input, output, session) {
     })
   ## UI KEY METRICS <END>
     
+    ## CODYNAMICS <START>
     
+    #if window size > dat dif throw error or defulat
+    
+    corrWin <- shiny::reactiveValues(num = 1)
+
+    shiny::observeEvent(input$correlation_window_select, {
+      corrWin$num <- as.numeric(input$correlation_window_select)
+    #   
+    #   delts <- app_df() %>% 
+    #     dplyr::filter(Maturity %in% assets$series) %>% 
+    #     dplyr::select(Date, Maturity, Delta) %>% 
+    #     tidyr::pivot_wider(id_cols = Date, names_from = Maturity, values_from = Delta) %>% 
+    #     dplyr::rename_with(., .fn = ~paste0(., "_Delta"), .cols = -Date)
+    #   
+    #   gammas <- app_df() %>% 
+    #     dplyr::filter(Maturity %in% assets$series) %>% 
+    #     dplyr::select(Date, Maturity, Gamma) %>% 
+    #     tidyr::pivot_wider(id_cols = Date, names_from = Maturity, values_from = Gamma) %>% 
+    #     dplyr::rename_with(., .fn = ~paste0(., "_Gamma"), .cols = -Date)
+    #   
+      rates <- app_df() %>%
+        dplyr::filter(Maturity %in% assets$series) %>%
+        dplyr::select(Date, Maturity, Rate) %>%
+        tidyr::pivot_wider(id_cols = Date, names_from = Maturity, values_from = Rate) 
+      
+      cols <- colnames(rates %>% dplyr::select(-Date))
+      
+      col_pairs <- as.list(as.data.frame(t(combn(cols, 2, simplify = TRUE))))
+      
+       
+      walk2(col_pairs[[1]], col_pairs[[2]], function(x, y) {
+        rolling_corr <- slider::slide2_dbl(
+          .x = rates[[x]],  
+          .y = rates[[y]],
+          .f = ~ cor(.x, .y, use = "complete.obs"),
+          .before = corrWin$num
+        )
+        # Print or save the result
+        print(paste("Correlation for pair:", x, "and", y))
+        print(rolling_corr)  # or save this output as needed
+      })
+      
+    })
+    
+    
+    ## CODYNAMICS <END>
 }  
