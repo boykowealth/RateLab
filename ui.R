@@ -35,6 +35,14 @@ ui <- bslib::page_navbar(
           selected = "Rates",
           multiple = FALSE,
           selectize = FALSE
+        ),
+        
+        shiny::numericInput(
+          inputId = 'roll_num',
+          label = 'Volatility Window',
+          value = 5,
+          min = 2,
+          step = 1
         )
         
       ),
@@ -52,7 +60,8 @@ ui <- bslib::page_navbar(
             shiny::uiOutput("greeks")
           ),
           bslib::card(
-            bslib::card_header("Volatility")
+            bslib::card_header("Volatility"),
+            shiny::uiOutput("vols")
           )
         ),
         

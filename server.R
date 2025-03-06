@@ -6,6 +6,7 @@ server <- function(input, output, session) {
   dates <- shiny::reactiveValues(start = Sys.Date() - 30, end = Sys.Date())
   assets <- shiny::reactiveValues(series = c("US2Y", "US10Y", "US30Y"))
   measures <- shiny::reactiveValues(type = "Rate")
+  rollWin <- shiny::reactiveValues(num = 5)
   ## DYNAMIC LISTS <END>
   
   
@@ -49,6 +50,12 @@ server <- function(input, output, session) {
     measures$type <- input$ts_select
   })
   ## TS MEASURE FILTER <END>  
+
+  ## VOLATILITY ROLLBACK WINDOW <START>
+  shiny::observeEvent(input$roll_num, {
+    rollWin$num <- input$roll_num
+  })
+  ## VOLATILITY ROLLBACK WINDOW <END
   
   ## DATAFRAME FILTER <START>
   
@@ -60,7 +67,7 @@ server <- function(input, output, session) {
   
   ts_df <- shiny::reactive({
     df <- app_df() %>% 
-      dplyr::filter(Maturity == assets$series) %>% 
+      dplyr::filter(Maturity %in% assets$series) %>% 
       dplyr::mutate(ts_value = dplyr::case_when(
         measures$type == "Rate" ~ Rate,
         measures$type == "Price" ~ Price,
@@ -91,7 +98,12 @@ server <- function(input, output, session) {
       dplyr::mutate(name = paste(Var1, Var2, sep = "_"))
     
     all_combinations <- dplyr::bind_rows(combinations, reverse_combinations) %>%
-      dplyr::distinct()
+      dplyr::distinct() %>%
+      dplyr::mutate(
+        Var1_num = as.numeric(stringr::str_extract(Var1, "\\d+")),
+        Var2_num = as.numeric(stringr::str_extract(Var2, "\\d+"))
+      ) %>%
+      filter(Var1_num < Var2_num)
     
     combination_names <- all_combinations$name
     
@@ -311,7 +323,7 @@ server <- function(input, output, session) {
         }
         
         shiny::div(
-          shiny::p(shiny::strong(col_name), paste(":", round(second_value, 0), "BPS"), arrow_icon, round(rate_diff, 0))
+          shiny::p(shiny::strong(col_name), paste(":", round(second_value, 0), "BPS"), arrow_icon, round(rate_diff, 0), paste("BPS"))
         )
       })
       
@@ -374,6 +386,49 @@ server <- function(input, output, session) {
     })
     
     
+    output$vols <- renderUI({
+      df <- ts_df() %>% 
+        dplyr::arrange(Date) %>%
+        dplyr::group_by(Maturity) %>%
+        dplyr::mutate(Chg = (ts_value / dplyr::lag(ts_value)) -1,
+                      Vol = zoo::rollapply(
+                        Chg,
+                        width = rollWin$num,
+                        FUN = sd,
+                        align = "right",
+                        fill = NA,
+                        na.rm = TRUE   
+                      ) * sqrt(t2m)
+                      ) %>%
+        tidyr::drop_na() %>% 
+        dplyr::select(Date, Maturity, Vol) %>%
+        dplyr::ungroup() %>% 
+        tidyr::pivot_wider(id_cols = Date, names_from = Maturity, values_from = Vol)
+      
+      combination_ui <- lapply(names(df)[-1], function(col_name) {
+        
+        exvol <- df[[col_name]][nrow(df)] * 100
+        prevol <- df[[col_name]][nrow(df)-rollWin$num] * 100
+        
+        vol_dif <- (exvol - prevol)
+        
+        arrow_icon_vol <- if (vol_dif > 0) {
+          tags$span(
+            shiny::icon("arrow-up", lib = "glyphicon"),
+            style = "color: green; font-size: 18px;"
+          )
+        } else {
+          tags$span(
+            shiny::icon("arrow-down", lib = "glyphicon"),
+            style = "color: red; font-size: 18px;"
+          )
+        }
+        
+    shiny::p(shiny::strong(col_name), paste(":", round(exvol, 2), "%"), arrow_icon_vol, round(vol_dif, 2), paste("%"))
+      })
+      
+      shiny::div(combination_ui)
+    })
   ## UI KEY METRICS <END>
     
     
