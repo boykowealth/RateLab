@@ -276,29 +276,13 @@ server <- function(input, output, session) {
             DT::formatCurrency(., c("Actual PL", "Delta Est", "Gamma Est", "Explained", "Unexplained"))
         })
         
-        print(
-          values$locals %>%
-            dplyr::select(T2M, local_delta, local_gamma, Yield) %>% 
-            dplyr::left_join(values$bond_data, ., dplyr::join_by(T2M)) %>% 
-            dplyr::mutate(
-              Delta_Approx = local_delta * (YTM - Yield) * 10000,
-              Gamma_Approx = local_gamma * (YTM - Yield)^2 * 10000^2
-            ) %>%
-            dplyr::group_by(YTM) %>%
-            dplyr::summarise(
-              Price = sum(Price, na.rm = TRUE),
-              Delta_Approx = sum(Delta_Approx, na.rm = TRUE),
-              Gamma_Approx = sum(Gamma_Approx, na.rm = TRUE)
-            )
-        )
-        
         output$port_risk_vis <- shiny::renderPlot({
           dat <- values$locals %>%
               dplyr::select(T2M, local_delta, local_gamma, Yield) %>% 
               dplyr::left_join(values$bond_data, ., dplyr::join_by(T2M)) %>% 
               dplyr::mutate(
                 Delta_Approx = local_delta * (YTM - Yield) * 10000,
-                Gamma_Approx = local_gamma * (YTM - Yield)^2 * 10000^2
+                Gamma_Approx = .5 * local_gamma * (YTM - Yield)^2 * 10000^2
             ) %>% 
             dplyr::group_by(YTM) %>% 
             dplyr::summarise(
@@ -308,20 +292,32 @@ server <- function(input, output, session) {
             ) %>% 
             tidyr::pivot_longer(-YTM, names_to = 'series', values_to = 'value')
           
-          dat %>% ggplot(aes(x = YTM, y = value, col = series)) + geom_line() +
-            ggplot2::scale_y_continuous(labels = scales::dollar) +
+          zero <- dat %>% dplyr::filter(series == 'Portfolio') %>%  filter(round(value, 0) == 0) %>% dplyr::pull(YTM)
+          
+          print(zero)
+          
+          dat <- dat %>% dplyr::mutate(change = YTM - zero)
+          
+          dat %>% ggplot(aes(x = change, y = value, col = series)) + geom_line() +
+            ggplot2::scale_y_continuous(labels = scales::dollar, breaks = scales::pretty_breaks(n = 8)) +
             ggplot2::scale_x_continuous(labels = scales::percent) +
             ggplot2::theme(
               panel.background = ggplot2::element_rect(fill = "#222", color = NA),
               plot.background = ggplot2::element_rect(fill = "#222", color = NA),
               panel.grid.major = ggplot2::element_line(color = "#444"),
               panel.grid.minor = ggplot2::element_line(color = "#444"),
-              axis.text = ggplot2::element_text(color = "white"),
+              axis.text = ggplot2::element_text(color = "white", size = 15),
               axis.title = ggplot2::element_text(color = "white"),
               legend.background = ggplot2::element_rect(fill = "#222", color = NA),
               legend.text = ggplot2::element_text(color = "white", size = 20),
               legend.title = ggplot2::element_text(color = "white"),
-              legend.position = "bottom"
+              legend.position = "bottom",
+              plot.title = ggplot2::element_text(color = "white", size = 25)
+            ) +
+            ggplot2::labs(
+              title = paste0("PL vs Change in YTM relative to ", zero * 100, "%"),
+              xaxis = "Change",
+              y = ""
             )
           
           })
