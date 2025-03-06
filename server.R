@@ -2,11 +2,12 @@ server <- function(input, output, session) {
   ##bs_themer()
   bslib::toggle_dark_mode() ## would make sense to offer both dark and light mode to the user
   
-  ## Dynamic Lists <START>
+  ## DYNAMIC LISTS <START>
   dates <- shiny::reactiveValues(start = Sys.Date() - 30, end = Sys.Date())
   assets <- shiny::reactiveValues(series = c("US2Y", "US10Y", "US30Y"))
   measures <- shiny::reactiveValues(type = "Rate")
-  ## Dynamic Lists <END>
+  ## DYNAMIC LISTS <END>
+  
   
   ## DATE FILTER <START>
   
@@ -65,7 +66,7 @@ server <- function(input, output, session) {
         measures$type == "Price" ~ Price,
         measures$type == "Delta" ~ Delta,
         measures$type == "Gamma" ~ Gamma,
-        TRUE ~ Rate  # Default case
+        TRUE ~ Rate  ## Default case
       ))
     
     return(df)
@@ -298,9 +299,15 @@ server <- function(input, output, session) {
         rate_diff <- second_value - first_value
         
         arrow_icon <- if (rate_diff > 0) {
-          shiny::icon("arrow-up", lib = "glyphicon")
+          tags$span(
+            shiny::icon("arrow-up", lib = "glyphicon"),
+            style = "color: green; font-size: 18px;"
+          )
         } else {
-          shiny::icon("arrow-down", lib = "glyphicon")
+          tags$span(
+            shiny::icon("arrow-down", lib = "glyphicon"),
+            style = "color: red; font-size: 18px;"
+          )
         }
         
         shiny::div(
@@ -314,15 +321,13 @@ server <- function(input, output, session) {
     output$greeks <- renderUI({
       dfD <- startEnd_df() %>%
         dplyr::select(Date, Delta, Maturity) %>%
-        dplyr::filter(Maturity == assets$series) %>%
-        dplyr::mutate_all(~ ifelse(is.na(.), 0, .)) %>%
-        tidyr::pivot_wider(names_from = Maturity, values_from = Delta)
+        dplyr::filter(Maturity %in% assets$series) %>%
+        tidyr::pivot_wider(id_cols = Date, names_from = Maturity, values_from = Delta)
       
       dfG <- startEnd_df() %>%
         dplyr::select(Date, Gamma, Maturity) %>%
-        dplyr::filter(Maturity == assets$series) %>%
-        dplyr::mutate_all(~ ifelse(is.na(.), 0, .)) %>%
-        tidyr::pivot_wider(names_from = Maturity, values_from = Gamma)
+        dplyr::filter(Maturity %in% assets$series) %>%
+        tidyr::pivot_wider(id_cols = Date, names_from = Maturity, values_from = Gamma)
       
       combination_ui <- lapply(names(dfD)[-1], function(col_name) {
         d_first <- dfD[[col_name]][1] * 10000
@@ -331,26 +336,37 @@ server <- function(input, output, session) {
         g_first <- dfG[[col_name]][1] * 10000
         g_sec <- dfG[[col_name]][2] * 10000
         
-        # Safely calculate differences with NA checks
-        d_dif <- ifelse(is.na(d_sec) | is.na(d_first), 0, d_sec - d_first)
-        g_dif <- ifelse(is.na(g_sec) | is.na(g_first), 0, g_sec - g_first)
+        d_dif <- ifelse(is.na(d_sec) | is.na(d_first), 0, ((d_sec / d_first) - 1) * 100)
+        g_dif <- ifelse(is.na(g_sec) | is.na(g_first), 0, ((g_sec / g_first) -1) * 100)
         
         arrow_icon_d <- if (d_dif > 0) {
-          shiny::icon("arrow-up", lib = "glyphicon")
+          tags$span(
+            shiny::icon("arrow-up", lib = "glyphicon"),
+            style = "color: green; font-size: 18px;"
+          )
         } else {
-          shiny::icon("arrow-down", lib = "glyphicon")
+          tags$span(
+            shiny::icon("arrow-down", lib = "glyphicon"),
+            style = "color: red; font-size: 18px;"
+          )
         }
         
         arrow_icon_g <- if (g_dif > 0) {
-          shiny::icon("arrow-up", lib = "glyphicon")
+          tags$span(
+            shiny::icon("arrow-up", lib = "glyphicon"),
+            style = "color: green; font-size: 18px;"
+          )
         } else {
-          shiny::icon("arrow-down", lib = "glyphicon")
+          tags$span(
+            shiny::icon("arrow-down", lib = "glyphicon"),
+            style = "color: red; font-size: 18px;"
+          )
         }
         
         shiny::p(
           shiny::strong(col_name), 
-          paste(": Delta:", round(d_sec, 0), "BPS"), arrow_icon_d, 
-          paste(" Gamma:", round(g_sec, 2), "BPS"), arrow_icon_g
+          paste(": Delta:", round(d_dif, 2), "%"), arrow_icon_d, 
+          paste(" Gamma:", round(g_dif, 2), "%"), arrow_icon_g
         )
       })
       
