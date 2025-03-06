@@ -20,6 +20,39 @@ Rcpp::sourceCpp('src/bondprice.cpp', env = globalenv())
 Rcpp::sourceCpp('src/Sensitivities.cpp', env = globalenv())
 
 
+## Add to package 
+
+pullsensitivity <- function(df, t2m, local_YTM, measure){
+  
+  if(t2m != 'portfolio'){
+    
+    res <- df %>% 
+      dplyr::filter(YTM == local_YTM & T2M == t2m) %>% 
+      dplyr::pull(!!measure)
+    
+    return(res)
+    
+  } else{
+    
+    res <- df %>% 
+      dplyr::filter(YTM == local_YTM) %>% 
+      dplyr::pull(!!measure)
+    
+    return(res)
+  }
+}
+
+pullLocals <- function(df, x, metric) {
+  
+  res <-  df %>% 
+    
+    dplyr::filter(T2M == x) %>% 
+    
+    dplyr::pull(!!metric)
+  
+  return(res)
+  }
+
 ## Data Collection
 start_date <- Sys.Date() - 30
 end_date <- Sys.Date()

@@ -70,7 +70,13 @@ server <- function(input, output, session) {
     
     nrows <- input$numholding
     
-    notional <- mat <- M <-  C <- ytm <- shock <- rep(NA, nrows)
+    nrows <- input$numholding
+    notional <- c(1000000, -500000, -500000)
+    mat <- c(10,2,30)
+    M <-  rep(2, nrows)
+    C <- rep(0.03, nrows)
+    ytm <- rep(0.03, nrows)
+    shock <- c(75, 50, 100)
     
     values$port <- tibble::tibble(
       Notional = notional,
@@ -89,7 +95,7 @@ server <- function(input, output, session) {
         } else {
           
           nrows <- input$numholding
-          notional <- mat <- M <-  C <- ytm <- shock <- rep(NA, nrows)
+          notional <- mat <- M <- C <- ytm <- shock <- rep(NA, nrows)
           port <- tibble::tibble(
             Notional = notional,
             Maturity = mat,
@@ -98,7 +104,7 @@ server <- function(input, output, session) {
             Yield = ytm,
             Shock = shock
           )
-          DT::datatable(port, editable = TRUE)
+          DT::datatable(port, rownames = FALSE, editable = TRUE)
         }
       })
       
@@ -125,7 +131,7 @@ server <- function(input, output, session) {
                         index = dplyr::row_number())
         
         
-        values$ytms <- seq(from = 0, to = max(values$port_tmp$Yield, na.rm = TRUE) + 0.03, by = 0.0001)
+        values$ytms <- round(seq(from = 0, to = max(values$port_tmp$Yield, na.rm = TRUE) + 0.03, by = 0.0001), 4)
         
          
         values$f_matrix <- expand.grid(index = 1:nrow(values$port_tmp), ytm = values$ytms) %>% 
@@ -141,7 +147,109 @@ server <- function(input, output, session) {
           tidyr::as_tibble() %>% 
           dplyr::left_join(., values$bond_sensitivities %>% tidyr::as_tibble(), dplyr::join_by(YTM,T2M))
         
-        print(values$bond_data)
+        values$port_prices <- values$bond_data %>% dplyr::group_by(YTM) %>% 
+          dplyr::summarise(
+            Port_price = sum(Price),
+            Port_price_plus = sum(Price_Plus),
+            Port_price_minus = sum(Price_Minus)) %>% 
+          dplyr::mutate(
+            Delta = (Port_price_plus - Port_price_minus) / (2 * 0.0001) / 10000,
+            Gamma = (Port_price_plus - 2 * Port_price + Port_price_minus) / (2 * 0.0001)^2 / 10000^2
+          )
+        
+        values$locals <- values$port_tmp %>% dplyr::select(T2M = Maturity, Yield, Notional, Shock) %>%
+          dplyr::mutate(
+            local_delta = purrr::map2_dbl(.x = T2M, .y = Yield, .f = ~pullsensitivity(values$bond_data, .x, .y, 'Delta')),
+            local_gamma = purrr::map2_dbl(.x = T2M, .y = Yield, .f = ~pullsensitivity(values$bond_data, .x, .y, 'Gamma')),
+            new_P = purrr::map2_dbl(.x = T2M, .y = round(Yield + Shock, 4), .f = ~pullsensitivity(values$bond_data, .x, .y, 'Price')),
+            Actual = new_P - Notional,
+            Delta_est = local_delta * (Shock * 10000),
+            Gamma_est = local_gamma * Shock^2 * 10000^2,
+            Explained = Delta_est + Gamma_est,
+            Unexplained = abs(Actual) - abs(Explained)
+          )
+        
+        
+        output$expansion_table <- DT::renderDT({
+          
+          dat <- values$locals %>% 
+            dplyr::select(T2M, Yield, Shock, Actual, Delta_est, Gamma_est, Explained, Unexplained)
+          
+          summary_row <- data.frame(
+            T2M = "Portfolio",
+            Yield = NA,
+            Shock = NA,
+            Actual = sum(dat$Actual, na.rm = TRUE),
+            Delta_est = sum(dat$Delta_est, na.rm = TRUE),
+            Gamma_est = sum(dat$Gamma_est, na.rm = TRUE),
+            Explained = sum(dat$Explained, na.rm = TRUE),
+            Unexplained = sum(dat$Unexplained, na.rm = TRUE)
+          )
+          
+          dat <- rbind(dat, summary_row)
+          
+          DT::datatable(
+            dat, 
+            extensions = 'Buttons', 
+            options = list(
+              dom = 'Bfrtip',
+              buttons = c('csv','pdf', 'print') 
+            ),
+            colnames = c("Delta Est" = "Delta_est", "Gamma Est" = "Gamma_est", "Actual PL" = "Actual"),
+            rownames = F
+              ) %>% 
+            DT::formatCurrency(., c("Actual PL", "Delta Est", "Gamma Est", "Explained", "Unexplained"))
+        })
+        
+        print(
+          values$locals %>%
+            dplyr::select(T2M, local_delta, local_gamma, Yield) %>% 
+            dplyr::left_join(values$bond_data, ., dplyr::join_by(T2M)) %>% 
+            dplyr::mutate(
+              Delta_Approx = local_delta * (YTM - Yield) * 10000,
+              Gamma_Approx = local_gamma * (YTM - Yield)^2 * 10000^2
+            ) %>%
+            dplyr::group_by(YTM) %>%
+            dplyr::summarise(
+              Price = sum(Price, na.rm = TRUE),
+              Delta_Approx = sum(Delta_Approx, na.rm = TRUE),
+              Gamma_Approx = sum(Gamma_Approx, na.rm = TRUE)
+            )
+        )
+        
+        output$port_risk_vis <- shiny::renderPlot({
+          dat <- values$locals %>%
+              dplyr::select(T2M, local_delta, local_gamma, Yield) %>% 
+              dplyr::left_join(values$bond_data, ., dplyr::join_by(T2M)) %>% 
+              dplyr::mutate(
+                Delta_Approx = local_delta * (YTM - Yield) * 10000,
+                Gamma_Approx = local_gamma * (YTM - Yield)^2 * 10000^2
+            ) %>% 
+            dplyr::group_by(YTM) %>% 
+            dplyr::summarise(
+              Portfolio = sum(Price, na.rm = TRUE),
+              `Delta Approx` = sum(Delta_Approx, na.rm = TRUE),
+              `Gamma Approx` = sum(Gamma_Approx, na.rm = TRUE)
+            ) %>% 
+            tidyr::pivot_longer(-YTM, names_to = 'series', values_to = 'value')
+          
+          dat %>% ggplot(aes(x = YTM, y = value, col = series)) + geom_line() +
+            ggplot2::scale_y_continuous(labels = scales::dollar) +
+            ggplot2::scale_x_continuous(labels = scales::percent) +
+            ggplot2::theme(
+              panel.background = ggplot2::element_rect(fill = "#222", color = NA),
+              plot.background = ggplot2::element_rect(fill = "#222", color = NA),
+              panel.grid.major = ggplot2::element_line(color = "#444"),
+              panel.grid.minor = ggplot2::element_line(color = "#444"),
+              axis.text = ggplot2::element_text(color = "white"),
+              axis.title = ggplot2::element_text(color = "white"),
+              legend.background = ggplot2::element_rect(fill = "#222", color = NA),
+              legend.text = ggplot2::element_text(color = "white", size = 20),
+              legend.title = ggplot2::element_text(color = "white"),
+              legend.position = "bottom"
+            )
+          
+          })
       
       })
     

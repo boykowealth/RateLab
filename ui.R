@@ -115,7 +115,7 @@ ui <- bslib::page_navbar(
     title = "Portfolio",
     bslib::card(
     bslib::layout_columns(
-      col_widths = c(5, 7, 12, 12),
+      col_widths = c(6, 6, 12),
       bslib::card(
         bslib::card_header("Manage Positions"),
         shiny::numericInput('numholding', "Number of Posistions", 3, min = 1),
@@ -123,13 +123,12 @@ ui <- bslib::page_navbar(
         shiny::actionButton('calc', 'Submit Portfolio')
       ),
       bslib::card(
-        bslib::card_header("Taylor Series Expansion")
+        bslib::card_header("Taylor Series Expansion"),
+        DT::DTOutput('expansion_table')
       ),
       bslib::card(
-        bslib::card_header("Portfolio Exposure")
-      ),
-      bslib::card(
-        bslib::card_header("Portfolio Risk")
+        bslib::card_header("Portfolio Risk"),
+        shiny::plotOutput("port_risk_vis")
       )
       )
     )
