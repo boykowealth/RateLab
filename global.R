@@ -2,12 +2,12 @@
 
 library(dplyr)
 library(tidyverse)
-library(tidyquant)
 library(RLtools)
 library(rlang)
 library(utils)
 library(stringr)
 library(lubridate)
+library(zoo)
 
 library(shiny)
 library(bslib)
