@@ -146,7 +146,7 @@ server <- function(input, output, session) {
     nrows <- input$numholding
     
     nrows <- input$numholding
-    notional <- c(1000000, -500000, -500000)
+    notional <- c(1000000, -500000, -500000) #sync Push
     mat <- c(10,2,30)
     M <-  rep(2, nrows)
     C <- rep(0.03, nrows)

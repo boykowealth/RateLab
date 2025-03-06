@@ -138,7 +138,7 @@ ui <- bslib::page_navbar(
       col_widths = c(6, 6, 12),
       bslib::card(
         bslib::card_header("Manage Positions"),
-        shiny::numericInput('numholding', "Number of Posistions", 3, min = 1),
+        shiny::numericInput('numholding', "Number of Posistions", 3, min = 1), #sync Push
         DT::DTOutput('postable'),
         shiny::actionButton('calc', 'Submit Portfolio')
       ),
