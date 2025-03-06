@@ -2,9 +2,15 @@ server <- function(input, output, session) {
   ##bs_themer()
   bslib::toggle_dark_mode() ## would make sense to offer both dark and light mode to the user
   
-  ## DATE FILTER <START>
+  ## DYNAMIC LISTS <START>
   dates <- shiny::reactiveValues(start = Sys.Date() - 30, end = Sys.Date())
   assets <- shiny::reactiveValues(series = c("US2Y", "US10Y", "US30Y"))
+  measures <- shiny::reactiveValues(type = "Rate")
+  rollWin <- shiny::reactiveValues(num = 5)
+  ## DYNAMIC LISTS <END>
+  
+  
+  ## DATE FILTER <START>
   
   shiny::observeEvent(input$env_date_start, {
     dates$start <- input$env_date_start
@@ -38,6 +44,18 @@ server <- function(input, output, session) {
     shiny::updateDateInput(session, "env_asset_select", value = assets$series)
   })
   ## ASSET FILTER <END>  
+
+  ## TS MEASURE FILTER <START>
+  shiny::observeEvent(input$ts_select, {
+    measures$type <- input$ts_select
+  })
+  ## TS MEASURE FILTER <END>  
+
+  ## VOLATILITY ROLLBACK WINDOW <START>
+  shiny::observeEvent(input$roll_num, {
+    rollWin$num <- input$roll_num
+  })
+  ## VOLATILITY ROLLBACK WINDOW <END
   
   ## DATAFRAME FILTER <START>
   
@@ -49,7 +67,15 @@ server <- function(input, output, session) {
   
   ts_df <- shiny::reactive({
     df <- app_df() %>% 
-      dplyr::filter(Maturity == assets$series)
+      dplyr::filter(Maturity %in% assets$series) %>% 
+      dplyr::mutate(ts_value = dplyr::case_when(
+        measures$type == "Rate" ~ Rate,
+        measures$type == "Price" ~ Price,
+        measures$type == "Delta" ~ Delta,
+        measures$type == "Gamma" ~ Gamma,
+        TRUE ~ Rate  ## Default case
+      ))
+    
     return(df)
   })
   
@@ -59,6 +85,55 @@ server <- function(input, output, session) {
       dplyr::mutate(t2m = round(t2m, 3)) %>% 
       dplyr::arrange(t2m)
   })
+  
+  spread_df <- shiny::reactive({
+    
+    ### GENERATE ALL COMBINATIONS (ORDER MATTERS)
+    combinations <- expand.grid(assets$series, assets$series) %>%
+      dplyr::filter(Var1 != Var2) %>%
+      dplyr::mutate(name = paste(Var1, Var2, sep = "_")) 
+    
+    reverse_combinations <- combinations %>%
+      dplyr::rename(Var1 = Var2, Var2 = Var1) %>%
+      dplyr::mutate(name = paste(Var1, Var2, sep = "_"))
+    
+    all_combinations <- dplyr::bind_rows(combinations, reverse_combinations) %>%
+      dplyr::distinct() %>%
+      dplyr::mutate(
+        Var1_num = as.numeric(stringr::str_extract(Var1, "\\d+")),
+        Var2_num = as.numeric(stringr::str_extract(Var2, "\\d+"))
+      ) %>%
+      filter(Var1_num < Var2_num)
+    
+    combination_names <- all_combinations$name
+    
+    ### CONVERT RATES TO WIDE DF
+    df <- startEnd_df() %>%
+      dplyr::select(Date, Rate, Maturity) %>%
+      tidyr::pivot_wider(names_from = Maturity, values_from = Rate)
+    
+    ### MAP ALL SPREADS  
+    df <- df %>%
+      dplyr::bind_cols(
+        purrr::map_dfc(seq_len(nrow(all_combinations)), function(i) {
+          var1 <- all_combinations$Var1[i]
+          var2 <- all_combinations$Var2[i]
+          tibble::tibble(
+            !!paste0(var1, "_", var2) := df[[var1]] - df[[var2]]
+          )
+        })
+      )
+    
+    ### ONLY DISPLAY THE COMBINATIONS SELECTED
+    available_columns <- names(df)[-1]  # All spread columns after Date
+    valid_combinations <- lubridate::intersect(combination_names, available_columns)
+    
+    df <- df %>%
+      dplyr::select(Date, dplyr::all_of(valid_combinations))  # Select only matching columns
+    
+    return(df)
+  })
+  
   
   ## DATAFRAME FILTER <END>
   
@@ -263,7 +338,7 @@ server <- function(input, output, session) {
       df <- startEnd_df()
       
       ggplot2::ggplot(df, ggplot2::aes(x = as.factor(t2m), y = Rate, color = as.factor(Date), group = Date)) +
-        ggplot2::geom_line() +
+        ggplot2::geom_smooth(se = FALSE) +
         ggplot2::labs(
           title = "",
           x = "Maturity (Years)",
@@ -305,7 +380,7 @@ server <- function(input, output, session) {
         format <- "%Y"       
       }
       
-      ggplot2::ggplot(df, ggplot2::aes(x = Date, y = Rate, color = as.factor(Maturity), group = Maturity)) +
+      ggplot2::ggplot(df, ggplot2::aes(x = Date, y = ts_value, color = as.factor(Maturity), group = Maturity)) +
         ggplot2::geom_line() +
         ggplot2::labs(
           title = "",
@@ -332,5 +407,137 @@ server <- function(input, output, session) {
     })
   ## CHARTS & VISUALS <END>
   
-  
+  ## UI KEY METRICS <START>
+    output$spreads <- renderUI({
+      df <- spread_df()
+      
+      combination_columns <- names(df)[-1]
+      combination_ui <- lapply(combination_columns, function(col_name) {
+        
+        first_value <- df[[col_name]][1] * 10000
+        second_value <- df[[col_name]][2] * 10000
+        rate_diff <- second_value - first_value
+        
+        arrow_icon <- if (rate_diff > 0) {
+          tags$span(
+            shiny::icon("arrow-up", lib = "glyphicon"),
+            style = "color: green; font-size: 18px;"
+          )
+        } else {
+          tags$span(
+            shiny::icon("arrow-down", lib = "glyphicon"),
+            style = "color: red; font-size: 18px;"
+          )
+        }
+        
+        shiny::div(
+          shiny::p(shiny::strong(col_name), paste(":", round(second_value, 0), "BPS"), arrow_icon, round(rate_diff, 0), paste("BPS"))
+        )
+      })
+      
+      shiny::tagList(combination_ui)
+    })
+    
+    output$greeks <- renderUI({
+      dfD <- startEnd_df() %>%
+        dplyr::select(Date, Delta, Maturity) %>%
+        dplyr::filter(Maturity %in% assets$series) %>%
+        tidyr::pivot_wider(id_cols = Date, names_from = Maturity, values_from = Delta)
+      
+      dfG <- startEnd_df() %>%
+        dplyr::select(Date, Gamma, Maturity) %>%
+        dplyr::filter(Maturity %in% assets$series) %>%
+        tidyr::pivot_wider(id_cols = Date, names_from = Maturity, values_from = Gamma)
+      
+      combination_ui <- lapply(names(dfD)[-1], function(col_name) {
+        d_first <- dfD[[col_name]][1] * 10000
+        d_sec <- dfD[[col_name]][2] * 10000
+        
+        g_first <- dfG[[col_name]][1] * 10000
+        g_sec <- dfG[[col_name]][2] * 10000
+        
+        d_dif <- ifelse(is.na(d_sec) | is.na(d_first), 0, ((d_sec / d_first) - 1) * 100)
+        g_dif <- ifelse(is.na(g_sec) | is.na(g_first), 0, ((g_sec / g_first) -1) * 100)
+        
+        arrow_icon_d <- if (d_dif > 0) {
+          tags$span(
+            shiny::icon("arrow-up", lib = "glyphicon"),
+            style = "color: green; font-size: 18px;"
+          )
+        } else {
+          tags$span(
+            shiny::icon("arrow-down", lib = "glyphicon"),
+            style = "color: red; font-size: 18px;"
+          )
+        }
+        
+        arrow_icon_g <- if (g_dif > 0) {
+          tags$span(
+            shiny::icon("arrow-up", lib = "glyphicon"),
+            style = "color: green; font-size: 18px;"
+          )
+        } else {
+          tags$span(
+            shiny::icon("arrow-down", lib = "glyphicon"),
+            style = "color: red; font-size: 18px;"
+          )
+        }
+        
+        shiny::p(
+          shiny::strong(col_name), 
+          paste(": Delta:", round(d_dif, 2), "%"), arrow_icon_d, 
+          paste(" Gamma:", round(g_dif, 2), "%"), arrow_icon_g
+        )
+      })
+      
+      shiny::div(combination_ui)
+    })
+    
+    
+    output$vols <- renderUI({
+      df <- ts_df() %>% 
+        dplyr::arrange(Date) %>%
+        dplyr::group_by(Maturity) %>%
+        dplyr::mutate(Chg = (ts_value / dplyr::lag(ts_value)) -1,
+                      Vol = zoo::rollapply(
+                        Chg,
+                        width = rollWin$num,
+                        FUN = sd,
+                        align = "right",
+                        fill = NA,
+                        na.rm = TRUE   
+                      ) * sqrt(t2m)
+                      ) %>%
+        tidyr::drop_na() %>% 
+        dplyr::select(Date, Maturity, Vol) %>%
+        dplyr::ungroup() %>% 
+        tidyr::pivot_wider(id_cols = Date, names_from = Maturity, values_from = Vol)
+      
+      combination_ui <- lapply(names(df)[-1], function(col_name) {
+        
+        exvol <- df[[col_name]][nrow(df)] * 100
+        prevol <- df[[col_name]][nrow(df)-rollWin$num] * 100
+        
+        vol_dif <- (exvol - prevol)
+        
+        arrow_icon_vol <- if (vol_dif > 0) {
+          tags$span(
+            shiny::icon("arrow-up", lib = "glyphicon"),
+            style = "color: green; font-size: 18px;"
+          )
+        } else {
+          tags$span(
+            shiny::icon("arrow-down", lib = "glyphicon"),
+            style = "color: red; font-size: 18px;"
+          )
+        }
+        
+    shiny::p(shiny::strong(col_name), paste(":", round(exvol, 2), "%"), arrow_icon_vol, round(vol_dif, 2), paste("%"))
+      })
+      
+      shiny::div(combination_ui)
+    })
+  ## UI KEY METRICS <END>
+    
+    
 }  

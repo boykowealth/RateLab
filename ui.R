@@ -26,6 +26,23 @@ ui <- bslib::page_navbar(
           selected = c("US2Y", "US10Y", "US30Y"),
           multiple = TRUE,
           selectize = TRUE
+        ),
+        ## TS Visual Select
+        shiny::selectInput(
+          inputId = "ts_select",
+          label = "Time Series Measure",
+          choices = c("Rate", "Price", "Delta", "Gamma"),
+          selected = "Rates",
+          multiple = FALSE,
+          selectize = FALSE
+        ),
+        
+        shiny::numericInput(
+          inputId = 'roll_num',
+          label = 'Volatility Window',
+          value = 5,
+          min = 2,
+          step = 1
         )
         
       ),
@@ -35,13 +52,16 @@ ui <- bslib::page_navbar(
         bslib::layout_columns(
           col_widths = c(4, 4, 4),
           bslib::card(
-            bslib::card_header("Spread Movements")
+            bslib::card_header("Spread Movements"),
+            shiny::uiOutput("spreads")
           ),
           bslib::card(
-            bslib::card_header("Greeks")
+            bslib::card_header("Greeks"),
+            shiny::uiOutput("greeks")
           ),
           bslib::card(
-            bslib::card_header("Volatility")
+            bslib::card_header("Volatility"),
+            shiny::uiOutput("vols")
           )
         ),
         
@@ -53,7 +73,7 @@ ui <- bslib::page_navbar(
             shiny::plotOutput("yield_curve")
           ),
           bslib::card(
-            bslib::card_header("Time Series of Rates"),
+            bslib::card_header("Time Series"),
             ##plotly::plotlyOutput("ts_rates")
             shiny::plotOutput("ts_rates")
           )

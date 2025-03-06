@@ -5,13 +5,16 @@ library(tidyverse)
 library(tidyquant)
 library(RLtools)
 library(rlang)
+library(utils)
+library(stringr)
+library(lubridate)
 
 library(shiny)
 library(bslib)
-library(shinyalert)
-library(plotly)
+library(ggplot2)
 library(DT)
 library(Rcpp)
+
 
 
 Rcpp::sourceCpp('src/TreasuryPrices.cpp')
