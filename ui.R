@@ -122,6 +122,7 @@ ui <- bslib::page_navbar(
       bslib::layout_columns(
         col_widths = c(6, 6),
         bslib::card(
+          plotly::plotlyOutput('yield_dynamic')
         ),
         bslib::card(
         )

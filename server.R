@@ -533,52 +533,40 @@ server <- function(input, output, session) {
       shiny::div(combination_ui)
     })
   ## UI KEY METRICS <END>
-    
-    ## CODYNAMICS <START>
-    
-    #if window size > dat dif throw error or defulat
-    
-    corrWin <- shiny::reactiveValues(num = 1)
-
-    shiny::observeEvent(input$correlation_window_select, {
-      corrWin$num <- as.numeric(input$correlation_window_select)
-    #   
-    #   delts <- app_df() %>% 
-    #     dplyr::filter(Maturity %in% assets$series) %>% 
-    #     dplyr::select(Date, Maturity, Delta) %>% 
-    #     tidyr::pivot_wider(id_cols = Date, names_from = Maturity, values_from = Delta) %>% 
-    #     dplyr::rename_with(., .fn = ~paste0(., "_Delta"), .cols = -Date)
-    #   
-    #   gammas <- app_df() %>% 
-    #     dplyr::filter(Maturity %in% assets$series) %>% 
-    #     dplyr::select(Date, Maturity, Gamma) %>% 
-    #     tidyr::pivot_wider(id_cols = Date, names_from = Maturity, values_from = Gamma) %>% 
-    #     dplyr::rename_with(., .fn = ~paste0(., "_Gamma"), .cols = -Date)
-    #   
-      rates <- app_df() %>%
-        dplyr::filter(Maturity %in% assets$series) %>%
-        dplyr::select(Date, Maturity, Rate) %>%
-        tidyr::pivot_wider(id_cols = Date, names_from = Maturity, values_from = Rate) 
+    output$yield_dynamic <- plotly::renderPlotly({
       
-      cols <- colnames(rates %>% dplyr::select(-Date))
       
-      col_pairs <- as.list(as.data.frame(t(combn(cols, 2, simplify = TRUE))))
-      
-       
-      walk2(col_pairs[[1]], col_pairs[[2]], function(x, y) {
-        rolling_corr <- slider::slide2_dbl(
-          .x = rates[[x]],  
-          .y = rates[[y]],
-          .f = ~ cor(.x, .y, use = "complete.obs"),
-          .before = corrWin$num
+      base <- app_df() %>% 
+        tidyr::drop_na() %>% 
+        ggplot(aes(x = as.factor(round(t2m, 3)), y = Rate, col = Inflation, group = Date, frame = Date)) +
+        ggplot2::geom_line() +
+        ggplot2::labs(
+          title = "",
+          x = "Maturity (Years)",
+          y = "",
+          color = "Inflation"
+        ) +
+        ggplot2::scale_y_continuous(labels = scales::percent) +
+        ggplot2::theme(
+          panel.background = ggplot2::element_rect(fill = "#222", color = NA),
+          plot.background = ggplot2::element_rect(fill = "#222", color = NA),
+          panel.grid.major = ggplot2::element_line(color = "#444"),
+          panel.grid.minor = ggplot2::element_line(color = "#444"),
+          axis.text = ggplot2::element_text(color = "white"),
+          axis.title = ggplot2::element_text(color = "white"),
+          legend.background = ggplot2::element_rect(fill = "#222", color = NA),
+          legend.text = ggplot2::element_text(color = "white"),
+          legend.title = ggplot2::element_text(color = "white"),
+          legend.position = "right"
         )
-        # Print or save the result
-        print(paste("Correlation for pair:", x, "and", y))
-        print(rolling_corr)  # or save this output as needed
-      })
       
-    })
-    
-    
-    ## CODYNAMICS <END>
-}  
+      base <- plotly::ggplotly(base)
+      
+      base %>%
+        plotly::animation_opts(easing = 'linear', redraw = FALSE) %>%
+        plotly::animation_button(x = 1, xanchor = "right", y = 0, yanchor = "bottom") %>%
+        plotly::animation_slider(currentvalue = list(prefix = "Date: ", font = list(color = 'white')))
+      
+    }
+    )
+ }  
