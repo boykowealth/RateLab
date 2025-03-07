@@ -580,7 +580,7 @@ server <- function(input, output, session) {
       shiny::div(combination_ui)
     })
   ## UI KEY METRICS <END>
-<<<<<<< HEAD
+
     output$yield_dynamic <- plotly::renderPlotly({
       
       
@@ -619,8 +619,5 @@ server <- function(input, output, session) {
     }
     )
  }  
-=======
     
-    
-}  
->>>>>>> 0ba703791364678223ba14e5241ba6986a8f9ae0
+
