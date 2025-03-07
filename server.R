@@ -614,7 +614,8 @@ server <- function(input, output, session) {
       base %>%
         plotly::animation_opts(easing = 'linear', redraw = FALSE) %>%
         plotly::animation_button(x = 1, xanchor = "right", y = 0, yanchor = "bottom") %>%
-        plotly::animation_slider(currentvalue = list(prefix = "Date: ", font = list(color = 'white')))
+        plotly::animation_slider(currentvalue = list(prefix = "Date: ", font = list(color = 'white')),
+                                 tickfont = list(color = 'white'))
       
     }
     )
