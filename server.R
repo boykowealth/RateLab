@@ -11,7 +11,6 @@ server <- function(input, output, session) {
   
   
   ## DATE FILTER <START>
-  
   shiny::observeEvent(input$env_date_start, {
     dates$start <- input$env_date_start
     shiny::updateDateInput(session, "co_date_start", value = dates$start)
@@ -305,6 +304,7 @@ server <- function(input, output, session) {
           
           zero <- dat %>% dplyr::filter(series == 'Portfolio') %>%  filter(round(value, 0) == 0) %>% dplyr::pull(YTM)
           
+          print(zero)
           
           dat <- dat %>% dplyr::mutate(change = YTM - zero)
           
@@ -582,40 +582,6 @@ server <- function(input, output, session) {
       shiny::div(combination_ui)
     })
   ## UI KEY METRICS <END>
-    output$yield_dynamic <- plotly::renderPlotly({
-      
-      
-      base <- app_df() %>% 
-        tidyr::drop_na() %>% 
-        ggplot(aes(x = as.factor(round(t2m, 3)), y = Rate, col = Inflation, group = Date, frame = Date)) +
-        ggplot2::geom_line() +
-        ggplot2::labs(
-          title = "",
-          x = "Maturity (Years)",
-          y = "",
-          color = "Inflation"
-        ) +
-        ggplot2::scale_y_continuous(labels = scales::percent) +
-        ggplot2::theme(
-          panel.background = ggplot2::element_rect(fill = "#222", color = NA),
-          plot.background = ggplot2::element_rect(fill = "#222", color = NA),
-          panel.grid.major = ggplot2::element_line(color = "#444"),
-          panel.grid.minor = ggplot2::element_line(color = "#444"),
-          axis.text = ggplot2::element_text(color = "white"),
-          axis.title = ggplot2::element_text(color = "white"),
-          legend.background = ggplot2::element_rect(fill = "#222", color = NA),
-          legend.text = ggplot2::element_text(color = "white"),
-          legend.title = ggplot2::element_text(color = "white"),
-          legend.position = "right"
-        )
-      
-      base <- plotly::ggplotly(base)
-      
-      base %>%
-        plotly::animation_opts(easing = 'linear', redraw = FALSE) %>%
-        plotly::animation_button(x = 1, xanchor = "right", y = 0, yanchor = "bottom") %>%
-        plotly::animation_slider(currentvalue = list(prefix = "Date: ", font = list(color = 'white')))
-      
-    }
-    )
- }  
+    
+    
+}  

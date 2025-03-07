@@ -5,6 +5,7 @@ ui <- bslib::page_navbar(
   
   bslib::nav_panel(
     title = "Environment",
+    id = "env",
     bslib::layout_columns(
       col_widths = c(2, 10),
       bslib::card(
@@ -112,6 +113,7 @@ ui <- bslib::page_navbar(
   ),
   bslib::nav_panel(
     title = "Co-Dynamics",
+    id = "co",
     bslib::layout_columns(
       col_widths = c(2, 10),
       bslib::card(
