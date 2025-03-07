@@ -33,25 +33,26 @@ server <- function(input, output, session) {
   ## DATE FILTER <END>
   
   ## ASSET FILTER <START>
-  loop <- shiny::reactiveValues(test = "user") ### INF Looping tests
+  loop_env <- shiny::reactiveValues(test = "user") ### INF Looping tests
+  loop_co <- shiny::reactiveValues(test = "user") ### INF Looping tests
   
   shiny::observeEvent(input$env_asset_select, {
-    if (loop$test != "comp"){
-      loop$test <- "comp"
+    if (loop_env$test != "comp"){
+      loop_env$test <- "comp"
+      loop_co$test <- "comp"
       assets$series <- input$env_asset_select
       shiny::updateDateInput(session, "co_asset_select", value = assets$series)
-      shiny::invalidateLater(500, session)
-      loop$test <- "user"
+      loop_env$test <- "user"
     }
   })
   
   shiny::observeEvent(input$co_asset_select, {
-    if(loop$test != "comp"){
-      loop$test <- "comp"
+    if(loop_co$test != "comp"){
+      loop_env$test <- "comp"
+      loop_co$test <- "comp"
       assets$series <- input$co_asset_select
       shiny::updateDateInput(session, "env_asset_select", value = assets$series)
-      shiny::invalidateLater(500, session)
-      loop$test <- "user"
+      loop_co$test <- "user"
     }
   })
   ## ASSET FILTER <END>  
@@ -110,6 +111,7 @@ server <- function(input, output, session) {
                     ) * sqrt(t2m)
       ) %>% 
       tidyr::drop_na() 
+
     
     return(df)
   })
