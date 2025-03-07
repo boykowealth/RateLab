@@ -202,11 +202,58 @@ ui <- bslib::page_navbar(
   bslib::nav_panel(
     title = "Documentation",
     bslib::layout_columns(
+      col_widths = c(9, 3),
       bslib::card(
-        bslib::card_header("About RateLab")
+        bslib::card_header("About RateLab"),
+        shiny::h5("Overview"),
+        shiny::p("RateLab is a fixed-income portfolio management tool designed for U.S. Treasury rate traders. 
+                 It offers a comprehensive view of market conditions, interest rate co-dynamics, and portfolio 
+                 exposure/risk. The application serves as an interactive sandbox for traders to test market shocks 
+                 and stress scenarios on their portfolio positions."),
+        shiny::h5("Environment"),
+        shiny::p("The Environment tab enables users to simulate market conditions under various input parameters. 
+                 Users are required to define a model's start and end date, with data availability extending back 
+                 to the 1960s in most instances. Subsequently, they are prompted to select the key U.S. Constant 
+                 Maturity Rates relevant to their analysis. Additionally, users can specify the data type to base 
+                 rolling volatility and time series graphs on. Finally, users have the option to define their rolling 
+                 volatility window. The tab visually represents changes in spreads, greeks, and volatility across 
+                 the selected rates. Furthermore, the yield curve shift graph illustrates the variations in the 
+                 yield curve over the chosen time frame."),
+        shiny::p(shiny::HTML("<b>Please Note: inputs are dynamically updated between the Environment and Co-Dynamics pages, 
+        this provides users with an efficent and painless experience.</b>")),
+        shiny::h5("Co-Dynamics"),
+        shiny::p("The Co-Dynamics tab offers users valuable insights into the co-movement of interest rates over time. This 
+                 section is specifically designed to help users understand inflation as the fundamental pivot point of all 
+                 rates. Users can either adjust inputs carried over from the Environment tab or analyze results under the 
+                 same conditions. The tab features two key graphs. The first graph is an animated yield curve with integrated 
+                 inflation change tracking. The second graph illustrates the historical relationship between rate changes and 
+                 inflation changes at various inflation levels. Together, these tools provide users with a comprehensive view 
+                 of how interest rates co-move within specific regimes."),
+        shiny::h5("Portfolio"),
+        shiny::p("The portfolio tab enables users to calculate profit and loss (P&L) attribution and visualize risk concentrations 
+                 within their portfolios. Users can customize their portfolio by selecting the number of positions and inputting 
+                 key bond attributes to generate results. These results leverage the principles of the Modern Risk Framework, 
+                 utilizing Taylor series expansion. For accurate calculations, users must provide six essential attributes. The 
+                 notional represents the principal amount of the bond. The maturity refers to the time remaining until the bond's 
+                 repayment date. The coupon denotes the periodic interest payment, expressed as a percentage of the notional. The 
+                 compound indicates the frequency at which interest is compounded over time. The yield is the rate of return anticipated 
+                 on the bond. Finally, the shock simulates stress or shifts in market conditions for risk assessment.
+                 "),
+        shiny::p(shiny::HTML("<b>RateLab Provides Traders The Necceasary Tools For Managing Exposure and Risk In The United States Bond Markets</b>"))
       ),
       bslib::card(
-        bslib::card_header("Contacts")
+        bslib::card_header("Contacts"),
+        shiny::h5("Brayden Boyko"),
+        shiny::a(href = "mailto:bnboyko@ualberta.ca", "Contact", target = "_blank"),
+        shiny::a(href = "https://www.linkedin.com/in/brayden-boyko/", "LinkedIn", target = "_blank"),
+        tags$hr(),
+        shiny::h5("Mitch Greer"),
+        shiny::a(href = "mailto:magreer@ualberta.ca", "Contact", target = "_blank"),
+        shiny::a(href = "https://www.linkedin.com/in/mitchgreer-commodities-trendfollowing-energy-trading-quant-auspice/", "LinkedIn", target = "_blank"),
+        tags$hr(),
+        shiny::h5("Alberta School of Business, Honors Finance"),
+        shiny::a(href = "financechair@ualberta.ca", "Contact", target = "_blank"),
+        shiny::a(href = "https://sites.ualberta.ca/~avdis/fin_honors/", "Web Page", target = "_blank")
       )
     )
   )
