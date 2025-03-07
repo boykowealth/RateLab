@@ -169,7 +169,10 @@ ui <- bslib::page_navbar(
         bslib::card_header("Manage Positions",
                            bslib::tooltip(
                              bsicons::bs_icon("question-circle"),
-                             "Enter Number of Posistion and Local Features",
+                             shiny::tagList(
+                               "Enter Posistions with features",
+                               tags$br(),
+                               "Shock: Enter integer of Bips - i.e 100 = 0.01 or 1%"),
                              placement = 'right')
                            ),
           shiny::numericInput('numholding', "Number of Positions", 3, min = 1),
