@@ -12,6 +12,7 @@ library(tidyquant)
 
 library(shiny)
 library(bslib)
+library(bsicons)
 library(ggplot2)
 library(plotly)
 library(DT)

@@ -11,7 +11,6 @@ server <- function(input, output, session) {
   
   
   ## DATE FILTER <START>
-  
   shiny::observeEvent(input$env_date_start, {
     dates$start <- input$env_date_start
     shiny::updateDateInput(session, "co_date_start", value = dates$start)
@@ -305,7 +304,6 @@ server <- function(input, output, session) {
           
           zero <- dat %>% dplyr::filter(series == 'Portfolio') %>%  filter(round(value, 0) == 0) %>% dplyr::pull(YTM)
           
-          
           dat <- dat %>% dplyr::mutate(change = YTM - zero)
           
           dat %>% ggplot(aes(x = change, y = value, col = series)) + geom_line() +
@@ -582,6 +580,7 @@ server <- function(input, output, session) {
       shiny::div(combination_ui)
     })
   ## UI KEY METRICS <END>
+<<<<<<< HEAD
     output$yield_dynamic <- plotly::renderPlotly({
       
       
@@ -620,3 +619,8 @@ server <- function(input, output, session) {
     }
     )
  }  
+=======
+    
+    
+}  
+>>>>>>> 0ba703791364678223ba14e5241ba6986a8f9ae0
