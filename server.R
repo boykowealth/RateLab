@@ -33,14 +33,26 @@ server <- function(input, output, session) {
   ## DATE FILTER <END>
   
   ## ASSET FILTER <START>
+  loop <- shiny::reactiveValues(test = "user") ### INF Looping tests
+  
   shiny::observeEvent(input$env_asset_select, {
-    assets$series <- input$env_asset_select
-    shiny::updateDateInput(session, "co_asset_select", value = assets$series)
+    if (loop$test != "comp"){
+      loop$test <- "comp"
+      assets$series <- input$env_asset_select
+      shiny::updateDateInput(session, "co_asset_select", value = assets$series)
+      shiny::invalidateLater(500, session)
+      loop$test <- "user"
+    }
   })
   
   shiny::observeEvent(input$co_asset_select, {
-    assets$series <- input$co_asset_select
-    shiny::updateDateInput(session, "env_asset_select", value = assets$series)
+    if(loop$test != "comp"){
+      loop$test <- "comp"
+      assets$series <- input$co_asset_select
+      shiny::updateDateInput(session, "env_asset_select", value = assets$series)
+      shiny::invalidateLater(500, session)
+      loop$test <- "user"
+    }
   })
   ## ASSET FILTER <END>  
 
@@ -73,7 +85,20 @@ server <- function(input, output, session) {
         measures$type == "Delta" ~ Delta,
         measures$type == "Gamma" ~ Gamma,
         TRUE ~ Rate  ## Default case
-      ))
+      )) %>% 
+      dplyr::arrange(Date) %>%
+      dplyr::group_by(Maturity) %>%
+      dplyr::mutate(Chg = (ts_value / dplyr::lag(ts_value)) -1,
+                    Volatility = zoo::rollapply(
+                      Chg,
+                      width = rollWin$num,
+                      FUN = sd,
+                      align = "right",
+                      fill = NA,
+                      na.rm = TRUE   
+                    ) * sqrt(t2m)
+      ) %>%
+      tidyr::drop_na() %>% 
     
     return(df)
   })
@@ -538,22 +563,9 @@ server <- function(input, output, session) {
     
     output$vols <- renderUI({
       df <- ts_df() %>% 
-        dplyr::arrange(Date) %>%
-        dplyr::group_by(Maturity) %>%
-        dplyr::mutate(Chg = (ts_value / dplyr::lag(ts_value)) -1,
-                      Vol = zoo::rollapply(
-                        Chg,
-                        width = rollWin$num,
-                        FUN = sd,
-                        align = "right",
-                        fill = NA,
-                        na.rm = TRUE   
-                      ) * sqrt(t2m)
-                      ) %>%
-        tidyr::drop_na() %>% 
-        dplyr::select(Date, Maturity, Vol) %>%
+        dplyr::select(Date, Maturity, Volatility) %>%
         dplyr::ungroup() %>% 
-        tidyr::pivot_wider(id_cols = Date, names_from = Maturity, values_from = Vol)
+        tidyr::pivot_wider(id_cols = Date, names_from = Maturity, values_from = Volatility)
       
       combination_ui <- lapply(names(df)[-1], function(col_name) {
         

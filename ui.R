@@ -32,7 +32,7 @@ ui <- bslib::page_navbar(
         shiny::selectInput(
           inputId = "ts_select",
           label = "Time Series Measure",
-          choices = c("Rate", "Price", "Delta", "Gamma"),
+          choices = c("Rate", "Price", "Delta", "Gamma", "Volatility"),
           selected = "Rates",
           multiple = FALSE,
           selectize = FALSE
