@@ -2,9 +2,24 @@
 _Providing Rate Traders The Necceasary Tools For Managing Exposure and Risk In The United States Markets_
 
 ## About RateLab
+By: Brayden Boyko & Mitch Greer (Alberta School of Business, FinTech Stream)
+
+RateLab is a fixed-income portfolio management tool designed for U.S. Treasury rate traders. It offers a comprehensive view of market conditions, interest rate co-dynamics, and portfolio exposure/risk. The application serves as an interactive sandbox for traders to test market shocks and stress scenarios on their portfolio positions.
+
+### Key Features:
++ Portfolio Risk Analysis: Breaks down risk exposures using rate co-dynamics and sensitivity measures.
++ Market Shock Testing: Users can apply custom yield curve shifts and stress-test their positions under different rate environments.
++ P&L Attribution: Implements the Modern Risk Framework using a Taylor series expansion to decompose portfolio P&L into key risk factors.
++ Custom Analytics Development: While RateLab does not include built-in predictive models, it allows users to integrate their own forecasting and analytics within its framework.
+
+### Technical Details:
++ Built as an R Shiny app for an intuitive and interactive user interface.
++ C++ integration ensures real-time calculations for efficient scenario modeling and risk analysis.
++ Leverages advanced mathematical techniques for risk modeling and attribution.
++ This combination of high-speed computation and user-friendly design makes RateLab a powerful tool for traders, portfolio managers, and risk analysts looking to understand, manage, and optimize their fixed-income portfolios.
 
 ## About RLtools
-RLtools is the supporting function package for the RateLab ShinyApp built in R. It provides several tools for forecasting, risk managagement, and portfolio construction. Provided is a list of popular functions available.
+RLtools is the supporting function package for the RateLab ShinyApp built in R. It provides several tools for forecasting, risk managagement, and portfolio construction. Provided is a list of popular functions available. Future releases of the application will see the implementation of these functions. Currently `RLtools::TREASURY_US()` is the only function implemented into the app; which provides an efficent way of loading US Constant Maturity Yields into R.
 
 ### Bond Pricing Tool (BOND)
 The BOND function calculates various bond-related metrics, such as price, yield, coupon rate, and face value, based on user input.
