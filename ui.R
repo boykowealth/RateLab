@@ -107,14 +107,6 @@ ui <- bslib::page_navbar(
           selectize = TRUE
         ),
         
-        ## Correlation Window
-        shiny::selectInput(
-          inputId = "correlation_window_select",
-          label = "Correlation Window Size",
-          choices = c(1, 14, 30),
-          selected = c(1),
-          selectize = TRUE
-        )
       ),
     bslib::card(
       
