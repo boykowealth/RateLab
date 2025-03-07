@@ -57,7 +57,20 @@ pullLocals <- function(df, x, metric) {
     dplyr::pull(!!metric)
   
   return(res)
+}
+
+ts_y_format <- function(ts_input){
+  
+  if(ts_input == "Rate"){
+    
+    return(ggplot2::scale_y_continuous(labels = scales::percent))
+    
+  } else if(ts_input == "Price"){
+    
+    return(ggplot2::scale_y_continuous(labels = scales::dollar))
+    
   }
+}
 
 ## Data Collection
 start_date <- Sys.Date() - 30

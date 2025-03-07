@@ -398,7 +398,7 @@ server <- function(input, output, session) {
           color = "Instrument"
         ) +
         ggplot2::scale_x_date(date_breaks = breaks, date_labels = format) +
-        ggplot2::scale_y_continuous(labels = scales::percent) +
+        ts_y_format(input$ts_select) +
         ggplot2::theme(
           panel.background = ggplot2::element_rect(fill = "#222", color = NA),
           plot.background = ggplot2::element_rect(fill = "#222", color = NA),

@@ -52,15 +52,33 @@ ui <- bslib::page_navbar(
         bslib::layout_columns(
           col_widths = c(4, 4, 4),
           bslib::card(
-            bslib::card_header("Spread Movements"),
+            bslib::card_header("Spread Movements",
+                               bslib::tooltip(
+                                 bsicons::bs_icon("question-circle"),
+                                 shiny::tagList(
+                                 "First Figure: Current Spread",
+                                 tags$br(),
+                                 "Arrow Figure: Change over Period"),
+                                 placement = 'right'
+                               )),
             shiny::uiOutput("spreads")
           ),
           bslib::card(
-            bslib::card_header("Greeks"),
+            bslib::card_header("Greeks",
+                               bslib::tooltip(
+                                  bsicons::bs_icon("question-circle"),
+                                  "Change Over Period",
+                                  placement = 'right'
+            )),
             shiny::uiOutput("greeks")
           ),
           bslib::card(
-            bslib::card_header("Volatility"),
+            bslib::card_header("Volatility",
+                               bslib::tooltip(
+                                 bsicons::bs_icon("question-circle"),
+                                 "Rolling Volatility of Selected Time Series Measure",
+                                 placement = 'right'
+                               )),
             shiny::uiOutput("vols")
           )
         ),
@@ -114,7 +132,12 @@ ui <- bslib::page_navbar(
       bslib::layout_columns(
         col_widths = c(6, 6),
         bslib::card(
-          bslib::card_header("Yield Curve Dynamics"),
+          bslib::card_header("Yield Curve Dynamics",
+                             bslib::tooltip(
+                               bsicons::bs_icon("question-circle"),
+                               "Play for Daily Change",
+                               placement = 'right'
+                             )),
           plotly::plotlyOutput('yield_dynamic')
         ),
         bslib::card(
