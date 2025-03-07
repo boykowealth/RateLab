@@ -62,7 +62,7 @@ pullLocals <- function(df, x, metric) {
 
 ts_y_format <- function(ts_input){
   
-  if(ts_input == "Rate"){
+  if(ts_input == "Rate" || ts_input == "Volatility"){
     
     return(ggplot2::scale_y_continuous(labels = scales::percent))
     

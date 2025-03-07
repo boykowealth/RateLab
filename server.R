@@ -79,15 +79,26 @@ server <- function(input, output, session) {
   ts_df <- shiny::reactive({
     df <- app_df() %>% 
       dplyr::filter(Maturity %in% assets$series) %>% 
+      dplyr::arrange(Date) %>%
+      dplyr::group_by(Maturity) %>%
+      dplyr::mutate(Chg = (Rate / dplyr::lag(Rate)) -1,
+                    Volatility = zoo::rollapply(
+                      Chg,
+                      width = rollWin$num,
+                      FUN = sd,
+                      align = "right",
+                      fill = NA,
+                      na.rm = TRUE   
+                    ) * sqrt(t2m)
+      ) %>% 
       dplyr::mutate(ts_value = dplyr::case_when(
         measures$type == "Rate" ~ Rate,
         measures$type == "Price" ~ Price,
         measures$type == "Delta" ~ Delta,
         measures$type == "Gamma" ~ Gamma,
+        measures$type == "Volatility" ~ Volatility,
         TRUE ~ Rate  ## Default case
       )) %>% 
-      dplyr::arrange(Date) %>%
-      dplyr::group_by(Maturity) %>%
       dplyr::mutate(Chg = (ts_value / dplyr::lag(ts_value)) -1,
                     Volatility = zoo::rollapply(
                       Chg,
@@ -97,8 +108,8 @@ server <- function(input, output, session) {
                       fill = NA,
                       na.rm = TRUE   
                     ) * sqrt(t2m)
-      ) %>%
-      tidyr::drop_na() %>% 
+      ) %>% 
+      tidyr::drop_na() 
     
     return(df)
   })
