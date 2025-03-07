@@ -87,11 +87,21 @@ ui <- bslib::page_navbar(
         bslib::layout_columns(
           col_widths = c(6, 6),
           bslib::card(
-            bslib::card_header("Yield Curve Shift"),
+            bslib::card_header("Yield Curve Shift",
+                               bslib::tooltip(
+                                 bsicons::bs_icon("question-circle"),
+                                 "Shift from Period Start to End",
+                                 placement = 'right'
+                               )),
             shiny::plotOutput("yield_curve")
           ),
           bslib::card(
-            bslib::card_header("Time Series"),
+            bslib::card_header("Time Series",
+                               bslib::tooltip(
+                                 bsicons::bs_icon("question-circle"),
+                                 "Facet Metric Using Input Card",
+                                 placement = 'right'
+                               )),
             ##plotly::plotlyOutput("ts_rates")
             shiny::plotOutput("ts_rates")
           )
